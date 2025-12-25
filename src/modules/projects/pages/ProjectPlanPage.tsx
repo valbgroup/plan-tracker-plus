@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BaselineSelector, Baseline } from '../components/BaselineSelector';
 import { VarianceAnalysis, Variance } from '../components/VarianceAnalysis';
@@ -25,6 +26,11 @@ import { InternalStakeholdersTable, InternalStakeholderData } from '../component
 import { ExternalStakeholdersTable, ExternalStakeholderData } from '../components/stakeholders/ExternalStakeholdersTable';
 import { BudgetEnvelopesTable, BudgetEnvelopeData } from '../components/budget/BudgetEnvelopesTable';
 import { MonthlyBudgetTable, MonthlyBudgetData } from '../components/budget/MonthlyBudgetTable';
+import { ResourcesTable, ResourceData } from '../components/resources/ResourcesTable';
+import { BaselineVersionsTable, BaselineVersionData } from '../components/audit/BaselineVersionsTable';
+import { ModificationLogTable, ModificationLogData } from '../components/audit/ModificationLogTable';
+import { ChangeRequestsTable, ChangeRequestData } from '../components/audit/ChangeRequestsTable';
+import { useRBAC } from '@/hooks/useRBAC';
 import {
   usePortfolios,
   usePrograms,
@@ -45,6 +51,9 @@ import {
   MOCK_FUNDING_SOURCES,
   MOCK_BUDGET_TYPES,
   MOCK_EXTERNAL_CONTACTS,
+  MOCK_RESOURCES,
+  MOCK_RESOURCE_TYPES,
+  MOCK_RESOURCE_FAMILIES,
 } from '@/data/masterDataMock';
 import { 
   Save, 
@@ -111,6 +120,10 @@ export const ProjectPlanPage: React.FC = () => {
   const { project, isLocked } = useOutletContext<ProjectDetailsContext>();
   const updateProject = useUpdateProject();
   
+  // RBAC Hook
+  const { permissions, isPMO, isReadOnly } = useRBAC();
+  const canEdit = permissions.canEditTabs1to5 && !isLocked;
+  
   const [activeTab, setActiveTab] = useState<TabId>('identification');
   const [isEditing, setIsEditing] = useState(false);
   const [selectedBaselineId, setSelectedBaselineId] = useState<string>('bl-2');
@@ -175,6 +188,33 @@ export const ProjectPlanPage: React.FC = () => {
     { month: '11', monthLabel: 'November', amount: 8333333 },
     { month: '12', monthLabel: 'December', amount: 8333337 },
   ]);
+
+  // Resources State (TAB.4)
+  const [resources, setResources] = useState<ResourceData[]>([
+    { id: 'res-1', resourceId: '1', startDate: '2025-02-01', endDate: '2025-06-30', quantity: 5, unitRate: 150000 },
+    { id: 'res-2', resourceId: '2', startDate: '2025-01-15', endDate: '2025-12-31', quantity: 2, unitRate: 500000 },
+    { id: 'res-3', resourceId: '3', startDate: '2025-03-01', endDate: '2025-09-30', quantity: 1, unitRate: 0 },
+  ]);
+  const [initialResources, setInitialResources] = useState<ResourceData[]>([...resources]);
+
+  // Audit Log State (TAB.6)
+  const [baselineVersions, setBaselineVersions] = useState<BaselineVersionData[]>([
+    { id: 'v-1', versionNumber: 'V1.0', createdDate: new Date('2025-01-15'), createdBy: 'Ahmed Benali', createdByEmail: 'ahmed@company.dz', changeType: 'STRUCTURAL', modifiedItemsCount: 5, modifiedItems: ['Project.Title', 'Phase.1', 'Phase.2', 'Deliverable.1', 'Budget.Total'], justification: 'Initial baseline after planning phase', status: 'ARCHIVED', businessImpact: 3 },
+    { id: 'v-2', versionNumber: 'V1.1', createdDate: new Date('2025-02-20'), createdBy: 'Fatima Kaci', createdByEmail: 'fatima@company.dz', changeType: 'BUDGETARY', modifiedItemsCount: 2, modifiedItems: ['Budget.Envelope.Personnel', 'Budget.Monthly.March'], justification: 'Budget adjustment for new resources', status: 'ACTIVE', businessImpact: 5 },
+  ]);
+
+  const [modificationLog, setModificationLog] = useState<ModificationLogData[]>([
+    { id: 'log-1', timestamp: new Date('2025-02-20T14:35:00'), changedBy: 'Fatima Kaci', changedByRole: 'PMO', actionType: 'Modified', modifiedElement: 'Budget.Envelope.Personnel', oldValue: '40,000,000', newValue: '50,000,000', hasBaselineImpact: true, justification: 'Additional staff required for Phase 3' },
+    { id: 'log-2', timestamp: new Date('2025-02-18T10:15:00'), changedBy: 'Ahmed Benali', changedByRole: 'Project Manager', actionType: 'Created', modifiedElement: 'Deliverable.SystemArchitecture', oldValue: '-', newValue: 'System Architecture v1.0', hasBaselineImpact: true },
+    { id: 'log-3', timestamp: new Date('2025-02-15T16:20:00'), changedBy: 'Karim Hamdi', changedByRole: 'Team Member', actionType: 'Modified', modifiedElement: 'Phase.Planning.EndDate', oldValue: '2025-04-01', newValue: '2025-04-15', hasBaselineImpact: true, justification: 'Extended due to additional requirements' },
+    { id: 'log-4', timestamp: new Date('2025-01-15T09:00:00'), changedBy: 'System', changedByRole: 'System', actionType: 'Validated', modifiedElement: 'Baseline.V1.0', oldValue: 'Draft', newValue: 'Validated', hasBaselineImpact: false },
+  ]);
+
+  const [changeRequests, setChangeRequests] = useState<ChangeRequestData[]>([
+    { id: 'cr-1', requestNumber: 'CHG-001', requestDate: new Date('2025-02-25'), requestorName: 'Ahmed Benali', requestorEmail: 'ahmed@company.dz', changeType: 'MAJOR', description: 'Request to extend project timeline by 2 weeks due to additional scope', status: 'PENDING', affectedFields: ['Phase.Execution.EndDate', 'Phase.Closure.StartDate', 'Phase.Closure.EndDate'], timelineImpact: '+2 weeks', riskLevel: 6 },
+    { id: 'cr-2', requestNumber: 'CHG-002', requestDate: new Date('2025-02-20'), requestorName: 'Fatima Kaci', requestorEmail: 'fatima@company.dz', changeType: 'MINOR', description: 'Budget reallocation from Travel to Equipment envelope', status: 'APPROVED', approverName: 'Director PMO', approverEmail: 'pmo@company.dz', approvalComments: 'Approved - sensible reallocation', affectedFields: ['Budget.Envelope.Travel', 'Budget.Envelope.Equipment'], budgetImpact: 0, riskLevel: 2 },
+  ]);
+
   
   // Form state for editing
   const [formData, setFormData] = useState<FormData>({
@@ -1033,10 +1073,37 @@ export const ProjectPlanPage: React.FC = () => {
               )}
 
               {activeTab === 'resources' && (
-                <div className="text-center text-muted-foreground py-12">
-                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">Resource Allocation</p>
-                  <p className="text-sm mt-2">Coming Soon</p>
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-foreground">Resource Allocation</h3>
+                  <ResourcesTable
+                    resources={resources}
+                    resourceOptions={MOCK_RESOURCES.filter(r => r.is_active).map(r => ({
+                      id: r.ressource_id,
+                      label: r.intitule,
+                      typeId: r.type_id,
+                      familyId: r.famille_id,
+                    }))}
+                    resourceTypes={MOCK_RESOURCE_TYPES.filter(t => t.is_active).map(t => ({
+                      id: t.type_id,
+                      label: t.libelle,
+                      familyId: t.famille_id,
+                    }))}
+                    resourceFamilies={MOCK_RESOURCE_FAMILIES.filter(f => f.is_active).map(f => ({
+                      id: f.famille_id,
+                      label: f.libelle,
+                    }))}
+                    currency={currencies.find(c => c.id === formData.currency_id)?.code || 'DZD'}
+                    projectStartDate={formData.date_debut_planifiée || '2025-01-01'}
+                    projectEndDate={formData.date_fin_planifiée || '2025-12-31'}
+                    onChange={setResources}
+                    onSave={async () => {
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                      setInitialResources([...resources]);
+                    }}
+                    disabled={!canEdit}
+                    isBaselineValidated={baselineStatus === 'validated'}
+                    initialResources={initialResources}
+                  />
                 </div>
               )}
 
@@ -1119,10 +1186,69 @@ export const ProjectPlanPage: React.FC = () => {
               )}
 
               {activeTab === 'log' && (
-                <div className="text-center text-muted-foreground py-12">
-                  <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">Activity Log</p>
-                  <p className="text-sm mt-2">Coming Soon</p>
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-foreground">Project Audit Log</h3>
+                  
+                  <Tabs defaultValue="versions" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="versions">Baseline Versions</TabsTrigger>
+                      <TabsTrigger value="modifications">Modification Log</TabsTrigger>
+                      <TabsTrigger value="changes">Change Requests</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="versions" className="mt-6">
+                      <BaselineVersionsTable
+                        versions={baselineVersions}
+                        onRestore={async (versionId) => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          toast.success(`Version ${versionId} restored successfully`);
+                        }}
+                        onExport={async (versionId, format) => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          toast.success(`Version exported as ${format.toUpperCase()}`);
+                        }}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="modifications" className="mt-6">
+                      <ModificationLogTable
+                        logs={modificationLog}
+                        onRollback={async (logId) => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          toast.success('Change rolled back successfully');
+                        }}
+                        onExport={async (format) => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          toast.success(`Log exported as ${format.toUpperCase()}`);
+                        }}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="changes" className="mt-6">
+                      <ChangeRequestsTable
+                        requests={changeRequests}
+                        isBaselineValidated={baselineStatus === 'validated'}
+                        onApprove={async (requestId, comments) => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          setChangeRequests(prev => prev.map(r => 
+                            r.id === requestId 
+                              ? { ...r, status: 'APPROVED' as const, approvalComments: comments, approverName: 'Current User' }
+                              : r
+                          ));
+                          toast.success('Change request approved');
+                        }}
+                        onReject={async (requestId, reason) => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          setChangeRequests(prev => prev.map(r => 
+                            r.id === requestId 
+                              ? { ...r, status: 'REJECTED' as const, approvalComments: reason, approverName: 'Current User' }
+                              : r
+                          ));
+                          toast.success('Change request rejected');
+                        }}
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </div>
               )}
             </CardContent>
