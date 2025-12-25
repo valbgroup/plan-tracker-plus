@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BaselineSelector, Baseline } from '../components/BaselineSelector';
 import { VarianceAnalysis, Variance } from '../components/VarianceAnalysis';
 import { BaselineControlHeader, BaselineStatus } from '../components/BaselineControlHeader';
@@ -16,6 +17,14 @@ import { BaselineImpactIcon } from '../components/BaselineImpactIcon';
 import { MasterDataDropdown } from '../components/MasterDataDropdown';
 import { KeyMilestonesTable, Milestone } from '../components/KeyMilestonesTable';
 import { AutoSaveIndicator } from '../components/AutoSaveIndicator';
+import { PhasesTable, PhaseData } from '../components/wbs/PhasesTable';
+import { DeliverablesTable, DeliverableData } from '../components/wbs/DeliverablesTable';
+import { GovernanceTable, GovernanceInstanceData } from '../components/stakeholders/GovernanceTable';
+import { ProjectTeamTable, TeamMemberData } from '../components/stakeholders/ProjectTeamTable';
+import { InternalStakeholdersTable, InternalStakeholderData } from '../components/stakeholders/InternalStakeholdersTable';
+import { ExternalStakeholdersTable, ExternalStakeholderData } from '../components/stakeholders/ExternalStakeholdersTable';
+import { BudgetEnvelopesTable, BudgetEnvelopeData } from '../components/budget/BudgetEnvelopesTable';
+import { MonthlyBudgetTable, MonthlyBudgetData } from '../components/budget/MonthlyBudgetTable';
 import {
   usePortfolios,
   usePrograms,
@@ -28,6 +37,15 @@ import {
   useLifecycleApproaches,
   numberToWords,
 } from '../hooks/useMasterDataSelects';
+import {
+  MOCK_DELIVERABLE_TYPES,
+  MOCK_MEMBER_ROLES,
+  MOCK_PROJECT_ROLES,
+  MOCK_ENVELOPE_TYPES,
+  MOCK_FUNDING_SOURCES,
+  MOCK_BUDGET_TYPES,
+  MOCK_EXTERNAL_CONTACTS,
+} from '@/data/masterDataMock';
 import { 
   Save, 
   Edit2, 
@@ -41,6 +59,8 @@ import {
   ClipboardList,
   History,
   Loader2,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -99,6 +119,62 @@ export const ProjectPlanPage: React.FC = () => {
   const [baselineStatus, setBaselineStatus] = useState<BaselineStatus>('draft');
   const [hasModifications, setHasModifications] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  // Collapsible sections state
+  const [governanceOpen, setGovernanceOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [externalOpen, setExternalOpen] = useState(false);
+
+  // WBS State (Phases + Deliverables)
+  const [wbsPhases, setWbsPhases] = useState<PhaseData[]>([
+    { id: 'phase-1', title: 'Initiation', startDate: '2025-01-15', endDate: '2025-02-15', coefficient: 10, remarks: '', lastModifiedBy: 'Admin', lastModifiedAt: '2025-01-10T10:00:00Z' },
+    { id: 'phase-2', title: 'Planning', startDate: '2025-02-16', endDate: '2025-04-15', coefficient: 20, remarks: '', lastModifiedBy: 'Admin', lastModifiedAt: '2025-01-10T10:00:00Z' },
+    { id: 'phase-3', title: 'Execution', startDate: '2025-04-16', endDate: '2025-09-15', coefficient: 50, remarks: '', lastModifiedBy: 'Admin', lastModifiedAt: '2025-01-10T10:00:00Z' },
+    { id: 'phase-4', title: 'Closure', startDate: '2025-09-16', endDate: '2025-12-31', coefficient: 20, remarks: '', lastModifiedBy: 'Admin', lastModifiedAt: '2025-01-10T10:00:00Z' },
+  ]);
+  const [initialWbsPhases, setInitialWbsPhases] = useState<PhaseData[]>([...wbsPhases]);
+
+  const [wbsDeliverables, setWbsDeliverables] = useState<DeliverableData[]>([
+    { id: 'del-1', title: 'Project Charter', phaseId: 'phase-1', typeId: '1', duration: 5, deliveryDate: '2025-02-01', coefficient: 15, remarks: '' },
+    { id: 'del-2', title: 'Requirement Document', phaseId: 'phase-2', typeId: '4', duration: 10, deliveryDate: '2025-03-15', coefficient: 25, remarks: '' },
+    { id: 'del-3', title: 'System Architecture', phaseId: 'phase-2', typeId: '4', duration: 8, deliveryDate: '2025-04-01', coefficient: 20, predecessorId: 'del-2', relationType: 'FD', remarks: '' },
+    { id: 'del-4', title: 'Core Module', phaseId: 'phase-3', typeId: '2', duration: 60, deliveryDate: '2025-07-15', coefficient: 30, predecessorId: 'del-3', relationType: 'FD', remarks: '' },
+    { id: 'del-5', title: 'Final Report', phaseId: 'phase-4', typeId: '1', duration: 10, deliveryDate: '2025-12-15', coefficient: 10, predecessorId: 'del-4', relationType: 'FD', remarks: '' },
+  ]);
+  const [initialWbsDeliverables, setInitialWbsDeliverables] = useState<DeliverableData[]>([...wbsDeliverables]);
+
+  // Stakeholders State
+  const [governanceInstances, setGovernanceInstances] = useState<GovernanceInstanceData[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([
+    { id: 'team-1', roleId: '1', employeeId: '1', allocationPercent: 100, startDate: '2025-01-15', endDate: '2025-12-31', remarks: '' },
+  ]);
+  const [initialTeamMembers, setInitialTeamMembers] = useState<TeamMemberData[]>([...teamMembers]);
+  const [internalStakeholders, setInternalStakeholders] = useState<InternalStakeholderData[]>([]);
+  const [externalStakeholders, setExternalStakeholders] = useState<ExternalStakeholderData[]>([]);
+
+  // Budget State
+  const [budgetEnvelopes, setBudgetEnvelopes] = useState<BudgetEnvelopeData[]>([
+    { id: 'env-1', typeId: '1', amount: 50000000, fundingSourceId: '3' },
+    { id: 'env-2', typeId: '2', amount: 20000000, fundingSourceId: '3' },
+    { id: 'env-3', typeId: '3', amount: 25000000, fundingSourceId: '1' },
+    { id: 'env-4', typeId: '5', amount: 5000000, fundingSourceId: '3' },
+  ]);
+  const [initialBudgetEnvelopes, setInitialBudgetEnvelopes] = useState<BudgetEnvelopeData[]>([...budgetEnvelopes]);
+
+  const [monthlyBudget, setMonthlyBudget] = useState<MonthlyBudgetData[]>([
+    { month: '01', monthLabel: 'January', amount: 8333333 },
+    { month: '02', monthLabel: 'February', amount: 8333333 },
+    { month: '03', monthLabel: 'March', amount: 8333333 },
+    { month: '04', monthLabel: 'April', amount: 8333333 },
+    { month: '05', monthLabel: 'May', amount: 8333333 },
+    { month: '06', monthLabel: 'June', amount: 8333333 },
+    { month: '07', monthLabel: 'July', amount: 8333333 },
+    { month: '08', monthLabel: 'August', amount: 8333333 },
+    { month: '09', monthLabel: 'September', amount: 8333333 },
+    { month: '10', monthLabel: 'October', amount: 8333333 },
+    { month: '11', monthLabel: 'November', amount: 8333333 },
+    { month: '12', monthLabel: 'December', amount: 8333337 },
+  ]);
   
   // Form state for editing
   const [formData, setFormData] = useState<FormData>({
@@ -808,57 +884,151 @@ export const ProjectPlanPage: React.FC = () => {
               )}
 
               {activeTab === 'wbs' && (
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-foreground">Work Breakdown Structure</h3>
-                  
-                  {phasesLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    </div>
-                  ) : phases.length > 0 ? (
-                    <div className="space-y-4">
-                      {phases.map((phase) => (
-                        <div 
-                          key={phase.phase_id}
-                          className="flex items-center gap-4 p-4 border border-border rounded-lg"
-                        >
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-sm font-bold text-primary">{phase.ordre}</span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-foreground">{phase.libellé}</h4>
-                            <p className="text-sm text-muted-foreground">{phase.description}</p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                              <span>{format(new Date(phase.date_debut), 'MMM dd')} - {format(new Date(phase.date_fin), 'MMM dd, yyyy')}</span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-foreground">{phase.progres_reel}%</div>
-                            <div className="w-24 h-1.5 bg-muted rounded-full mt-1">
-                              <div 
-                                className="h-full bg-primary rounded-full"
-                                style={{ width: `${phase.progres_reel}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center text-muted-foreground py-12">
-                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No phases defined yet.</p>
-                      <p className="text-sm mt-2">Hierarchical task structure with drag-and-drop coming soon.</p>
-                    </div>
-                  )}
+                <div className="space-y-8">
+                  {/* Phases Table */}
+                  <PhasesTable
+                    phases={wbsPhases}
+                    onChange={setWbsPhases}
+                    onSave={async () => {
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                      setInitialWbsPhases([...wbsPhases]);
+                    }}
+                    projectStartDate={formData.date_debut_planifiée || '2025-01-01'}
+                    projectEndDate={formData.date_fin_planifiée || '2025-12-31'}
+                    disabled={isLocked}
+                    isBaselineValidated={baselineStatus === 'validated'}
+                    initialPhases={initialWbsPhases}
+                  />
+
+                  {/* Deliverables Table */}
+                  <DeliverablesTable
+                    deliverables={wbsDeliverables}
+                    phases={wbsPhases}
+                    deliverableTypes={MOCK_DELIVERABLE_TYPES.filter(t => t.is_active).map(t => ({
+                      id: t.type_livrable_id,
+                      code: t.code,
+                      label: t.libelle,
+                    }))}
+                    onChange={setWbsDeliverables}
+                    onSave={async () => {
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                      setInitialWbsDeliverables([...wbsDeliverables]);
+                    }}
+                    disabled={isLocked}
+                    isBaselineValidated={baselineStatus === 'validated'}
+                    initialDeliverables={initialWbsDeliverables}
+                  />
                 </div>
               )}
 
               {activeTab === 'stakeholders' && (
-                <div className="text-center text-muted-foreground py-12">
-                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">Stakeholder Management</p>
-                  <p className="text-sm mt-2">Coming Soon</p>
+                <div className="space-y-8">
+                  {/* Governance Section - Collapsible Optional */}
+                  <Collapsible open={governanceOpen} onOpenChange={setGovernanceOpen}>
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center gap-2 w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                        {governanceOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        <span className="font-semibold text-foreground">Project Governance</span>
+                        <Badge variant="outline" className="ml-2">Optional</Badge>
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-4">
+                      <GovernanceTable
+                        instances={governanceInstances}
+                        employees={employees.map(e => ({ id: e.id, label: e.label }))}
+                        onChange={setGovernanceInstances}
+                        onSave={async () => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                        }}
+                        disabled={isLocked}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Project Team - Mandatory */}
+                  <ProjectTeamTable
+                    members={teamMembers}
+                    roles={MOCK_MEMBER_ROLES.filter(r => r.is_active).map(r => ({
+                      id: r.member_role_id,
+                      code: r.code,
+                      label: r.libelle,
+                    }))}
+                    employees={employees.map(e => ({
+                      id: e.id,
+                      label: e.label,
+                      email: e.email,
+                    }))}
+                    onChange={setTeamMembers}
+                    onSave={async () => {
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                      setInitialTeamMembers([...teamMembers]);
+                    }}
+                    projectStartDate={formData.date_debut_planifiée || '2025-01-01'}
+                    projectEndDate={formData.date_fin_planifiée || '2025-12-31'}
+                    disabled={isLocked}
+                    isBaselineValidated={baselineStatus === 'validated'}
+                    initialMembers={initialTeamMembers}
+                  />
+
+                  {/* Internal Stakeholders - Collapsible Optional */}
+                  <Collapsible open={internalOpen} onOpenChange={setInternalOpen}>
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center gap-2 w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                        {internalOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        <span className="font-semibold text-foreground">Internal Stakeholders</span>
+                        <Badge variant="outline" className="ml-2">Optional</Badge>
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-4">
+                      <InternalStakeholdersTable
+                        stakeholders={internalStakeholders}
+                        organizations={orgStructures.map(o => ({ id: o.id, code: o.code, label: o.label }))}
+                        roles={MOCK_PROJECT_ROLES.filter(r => r.is_active).map(r => ({
+                          id: r.fonction_id,
+                          code: r.code,
+                          label: r.libelle,
+                        }))}
+                        employees={employees.map(e => ({ id: e.id, label: e.label }))}
+                        onChange={setInternalStakeholders}
+                        onSave={async () => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                        }}
+                        disabled={isLocked}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* External Stakeholders - Collapsible Optional */}
+                  <Collapsible open={externalOpen} onOpenChange={setExternalOpen}>
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center gap-2 w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                        {externalOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        <span className="font-semibold text-foreground">External Stakeholders</span>
+                        <Badge variant="outline" className="ml-2">Optional</Badge>
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-4">
+                      <ExternalStakeholdersTable
+                        stakeholders={externalStakeholders}
+                        externalOrgs={externalOrgs.map(o => ({ id: o.id, code: o.code, label: o.label }))}
+                        roles={MOCK_PROJECT_ROLES.filter(r => r.is_active).map(r => ({
+                          id: r.fonction_id,
+                          code: r.code,
+                          label: r.libelle,
+                        }))}
+                        contacts={MOCK_EXTERNAL_CONTACTS.filter(c => c.is_active).map(c => ({
+                          id: c.collaborateur_externe_id,
+                          orgId: c.organisation_externe_id,
+                          label: `${c.prenom} ${c.nom}`,
+                        }))}
+                        onChange={setExternalStakeholders}
+                        onSave={async () => {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                        }}
+                        disabled={isLocked}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               )}
 
@@ -871,47 +1041,80 @@ export const ProjectPlanPage: React.FC = () => {
               )}
 
               {activeTab === 'budget' && (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <h3 className="text-lg font-semibold text-foreground">Project Budget</h3>
                   
+                  {/* Budget Overview Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                       <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Planned Budget</p>
                       <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                        {new Intl.NumberFormat('fr-DZ').format(project?.montant_budget_total || 0)} DZD
+                        {new Intl.NumberFormat('fr-DZ').format(formData.montant_budget_total || 0)} DZD
                       </p>
                     </div>
                     <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                      <p className="text-sm text-green-600 dark:text-green-400 font-medium">Spent</p>
+                      <p className="text-sm text-green-600 dark:text-green-400 font-medium">Allocated</p>
                       <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                        {new Intl.NumberFormat('fr-DZ').format(project?.budget_consomme || 0)} DZD
+                        {new Intl.NumberFormat('fr-DZ').format(budgetEnvelopes.reduce((sum, e) => sum + e.amount, 0))} DZD
                       </p>
                     </div>
                     <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
-                      <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Remaining</p>
+                      <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Consumed</p>
                       <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">
-                        {new Intl.NumberFormat('fr-DZ').format((project?.montant_budget_total || 0) - (project?.budget_consomme || 0))} DZD
+                        {new Intl.NumberFormat('fr-DZ').format(project?.budget_consomme || 0)} DZD
                       </p>
                     </div>
                     <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
                       <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">Utilization</p>
                       <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                        {project?.montant_budget_total 
-                          ? Math.round((project.budget_consomme / project.montant_budget_total) * 100) 
+                        {formData.montant_budget_total 
+                          ? Math.round((budgetEnvelopes.reduce((sum, e) => sum + e.amount, 0) / formData.montant_budget_total) * 100) 
                           : 0}%
                       </p>
                     </div>
                   </div>
 
-                  {envelopes.length > 0 && (
-                    <div className="mt-8">
-                      <VarianceAnalysis 
-                        variances={budgetVariances}
-                        title="Budget vs Actual"
-                        isLoading={envelopesLoading}
-                      />
-                    </div>
-                  )}
+                  {/* Budget Envelopes Table */}
+                  <BudgetEnvelopesTable
+                    envelopes={budgetEnvelopes}
+                    totalBudget={formData.montant_budget_total || 100000000}
+                    currency={currencies.find(c => c.id === formData.currency_id)?.code || 'DZD'}
+                    envelopeTypes={MOCK_ENVELOPE_TYPES.filter(t => t.is_active).map(t => ({
+                      id: t.type_enveloppe_id,
+                      code: t.code,
+                      label: t.libelle,
+                      budgetTypeId: t.type_budget_id,
+                    }))}
+                    fundingSources={MOCK_FUNDING_SOURCES.filter(s => s.is_active).map(s => ({
+                      id: s.source_financement_id,
+                      code: s.code,
+                      label: s.libelle,
+                    }))}
+                    budgetTypes={MOCK_BUDGET_TYPES.filter(t => t.is_active).map(t => ({
+                      id: t.type_budget_id,
+                      label: t.libelle,
+                    }))}
+                    onChange={setBudgetEnvelopes}
+                    onSave={async () => {
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                      setInitialBudgetEnvelopes([...budgetEnvelopes]);
+                    }}
+                    disabled={isLocked}
+                    isBaselineValidated={baselineStatus === 'validated'}
+                    initialEnvelopes={initialBudgetEnvelopes}
+                  />
+
+                  {/* Monthly Budget Distribution */}
+                  <MonthlyBudgetTable
+                    monthlyData={monthlyBudget}
+                    totalBudget={formData.montant_budget_total || 100000000}
+                    currency={currencies.find(c => c.id === formData.currency_id)?.code || 'DZD'}
+                    onChange={setMonthlyBudget}
+                    onSave={async () => {
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                    }}
+                    disabled={isLocked}
+                  />
                 </div>
               )}
 
