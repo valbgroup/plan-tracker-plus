@@ -483,15 +483,15 @@ export const DeliverablesTable: React.FC<DeliverablesTableProps> = ({
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={deliverable.predecessorId || ''}
-                        onValueChange={(v) => handleUpdateDeliverable(deliverable.id, 'predecessorId', v || undefined)}
+                        value={deliverable.predecessorId || '__none__'}
+                        onValueChange={(v) => handleUpdateDeliverable(deliverable.id, 'predecessorId', v === '__none__' ? undefined : v)}
                         disabled={disabled}
                       >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="None" />
                         </SelectTrigger>
                         <SelectContent className="bg-popover border shadow-lg z-50">
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="__none__">None</SelectItem>
                           {getPredecessorOptions(deliverable.id).map(p => (
                             <SelectItem key={p.id} value={p.id}>
                               {p.title || `Deliverable ${p.id}`}
