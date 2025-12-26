@@ -16,3 +16,12 @@ export { VarianceAnalysis } from './components/VarianceAnalysis';
 export { BaselineField } from './components/BaselineField';
 export { BaselineChangeRequestModal } from './components/BaselineChangeRequestModal';
 export { IdentificationSection } from './components/IdentificationSection';
+
+// Risks Components
+export { RiskFormModal, RiskCard, RisksPlanSection, RisksTrackingTable } from './components/risks';
+
+// Issues Components
+export { IssueFormModal, IssueCard, IssuesPlanSection, IssuesTrackingTable } from './components/issues';
+
+// Types
+export * from './types/risks-issues.types';
