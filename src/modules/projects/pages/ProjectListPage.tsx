@@ -103,7 +103,7 @@ export function ProjectListPage() {
   }, [projects, searchQuery, statusFilter, healthFilter, filterParam]);
 
   const handleProjectClick = (project: Project) => {
-    navigate(`/projects/${project.project_id}/plan`);
+    navigate(`/app/projects/${project.project_id}/plan`);
   };
 
   const formatCurrency = (amount: number) => {

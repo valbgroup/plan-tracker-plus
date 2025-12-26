@@ -29,7 +29,7 @@ export function LoginPage() {
 
     const success = await login(email, password);
     if (success) {
-      navigate('/dashboard/operational');
+      navigate('/app/dashboard/operational');
     } else {
       setError('Invalid credentials. Please try again.');
     }

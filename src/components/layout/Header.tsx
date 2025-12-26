@@ -31,6 +31,7 @@ import { mockAlerts } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
 const breadcrumbMap: Record<string, string> = {
+  app: 'App',
   dashboard: 'Dashboard',
   operational: 'Operational',
   tactical: 'Tactical',
@@ -58,7 +59,8 @@ export function Header() {
   const { theme, setTheme } = useUIStore();
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const pathSegments = location.pathname.split('/').filter(Boolean);
+  // Filter out 'app' from breadcrumb display since it's just a prefix
+  const pathSegments = location.pathname.split('/').filter(Boolean).filter(segment => segment !== 'app');
   const unreadAlerts = mockAlerts.filter((a) => !a.read).length;
 
   const handleLogout = () => {
@@ -218,14 +220,14 @@ export function Header() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => navigate('/settings/profile')}
+              onClick={() => navigate('/app/settings/profile')}
               className="cursor-pointer"
             >
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => navigate('/settings/system')}
+              onClick={() => navigate('/app/settings/system')}
               className="cursor-pointer"
             >
               <Settings className="mr-2 h-4 w-4" />

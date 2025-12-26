@@ -31,7 +31,7 @@ export default function UserSettings({ tab }: UserSettingsProps) {
 
   const handleTabChange = (value: string) => {
     if (tab) {
-      navigate(`/settings/profile/${value === 'profile' ? '' : value}`);
+      navigate(`/app/settings/profile/${value === 'profile' ? '' : value}`);
     } else {
       setSearchParams({ tab: value });
     }
