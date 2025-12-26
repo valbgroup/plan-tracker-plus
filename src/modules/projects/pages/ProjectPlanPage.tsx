@@ -11,10 +11,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Switch } from '@/components/ui/switch';
 import { BaselineSelector, Baseline } from '../components/BaselineSelector';
 import { VarianceAnalysis, Variance } from '../components/VarianceAnalysis';
 import { BaselineControlHeader, BaselineStatus } from '../components/BaselineControlHeader';
 import { BaselineImpactIcon } from '../components/BaselineImpactIcon';
+import { BaselineChangeRequestModal } from '../components/BaselineChangeRequestModal';
 import { MasterDataDropdown } from '../components/MasterDataDropdown';
 import { KeyMilestonesTable, Milestone } from '../components/KeyMilestonesTable';
 import { AutoSaveIndicator } from '../components/AutoSaveIndicator';
@@ -70,10 +72,18 @@ import {
   Loader2,
   ChevronDown,
   ChevronRight,
+  Lock,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+
+// Type for baseline field state
+interface BaselineFieldState {
+  isBaseline: boolean;
+  isPending: boolean;
+  pendingValue?: any;
+}
 
 // Mock baselines for demo
 const MOCK_BASELINES: Baseline[] = [
@@ -137,6 +147,157 @@ export const ProjectPlanPage: React.FC = () => {
   const [governanceOpen, setGovernanceOpen] = useState(false);
   const [internalOpen, setInternalOpen] = useState(false);
   const [externalOpen, setExternalOpen] = useState(false);
+
+  // Baseline field marking state
+  const [baselineFields, setBaselineFields] = useState<Record<string, BaselineFieldState>>({
+    // Auto-baseline fields (always marked, no toggle)
+    projectName: { isBaseline: true, isPending: false },
+    startDate: { isBaseline: true, isPending: false },
+    endDate: { isBaseline: true, isPending: false },
+    globalBudget: { isBaseline: true, isPending: false },
+    // Toggleable baseline fields
+    projectManager: { isBaseline: false, isPending: false },
+    lifecycleApproach: { isBaseline: false, isPending: false },
+    projectNature: { isBaseline: false, isPending: false },
+    projectType: { isBaseline: false, isPending: false },
+  });
+  const [baselineFieldLoading, setBaselineFieldLoading] = useState<Record<string, boolean>>({});
+
+  // Baseline change request modal state
+  const [changeRequestModal, setChangeRequestModal] = useState<{
+    isOpen: boolean;
+    fieldName: string;
+    fieldLabel: string;
+    oldValue: any;
+    newValue: any;
+    onConfirm: (justification?: string) => void;
+  }>({
+    isOpen: false,
+    fieldName: '',
+    fieldLabel: '',
+    oldValue: null,
+    newValue: null,
+    onConfirm: () => {},
+  });
+  const [isSubmittingChangeRequest, setIsSubmittingChangeRequest] = useState(false);
+
+  // Auto-baseline fields that cannot be toggled
+  const autoBaselineFields = ['projectName', 'startDate', 'endDate', 'globalBudget'];
+  const isAutoBaseline = (fieldName: string) => autoBaselineFields.includes(fieldName);
+
+  // Toggle baseline marking for a field
+  const handleToggleBaselineField = async (fieldName: string, isMarked: boolean) => {
+    if (isAutoBaseline(fieldName)) return;
+    
+    setBaselineFieldLoading(prev => ({ ...prev, [fieldName]: true }));
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setBaselineFields(prev => ({
+        ...prev,
+        [fieldName]: { ...prev[fieldName], isBaseline: isMarked }
+      }));
+      
+      toast.success(
+        isMarked 
+          ? `${fieldName} marked as baseline field` 
+          : `${fieldName} removed from baseline`
+      );
+    } catch (error) {
+      toast.error('Failed to update baseline status');
+    } finally {
+      setBaselineFieldLoading(prev => ({ ...prev, [fieldName]: false }));
+    }
+  };
+
+  // Check if field change requires change request
+  const handleBaselineProtectedChange = (
+    fieldName: string,
+    fieldLabel: string,
+    oldValue: any,
+    newValue: any,
+    updateFn: () => void
+  ) => {
+    const fieldState = baselineFields[fieldName];
+    
+    if (fieldState?.isBaseline && baselineStatus === 'validated') {
+      // Field is baseline-protected and validated - show change request modal
+      setChangeRequestModal({
+        isOpen: true,
+        fieldName,
+        fieldLabel,
+        oldValue,
+        newValue,
+        onConfirm: async (justification?: string) => {
+          setIsSubmittingChangeRequest(true);
+          try {
+            // Simulate API call to submit change request
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Mark field as pending
+            setBaselineFields(prev => ({
+              ...prev,
+              [fieldName]: { ...prev[fieldName], isPending: true, pendingValue: newValue }
+            }));
+            
+            // Apply the change locally (will be pending approval)
+            updateFn();
+            
+            toast.success('Change request submitted for PMO approval');
+            setChangeRequestModal(prev => ({ ...prev, isOpen: false }));
+          } catch (error) {
+            toast.error('Failed to submit change request');
+          } finally {
+            setIsSubmittingChangeRequest(false);
+          }
+        }
+      });
+    } else {
+      // Field is not baseline-protected or not validated - apply change directly
+      updateFn();
+    }
+  };
+
+  // Render baseline toggle with badge
+  const renderBaselineToggle = (fieldName: string, fieldLabel: string) => {
+    const isAuto = isAutoBaseline(fieldName);
+    const fieldState = baselineFields[fieldName] || { isBaseline: false, isPending: false };
+    const isLoading = baselineFieldLoading[fieldName];
+
+    return (
+      <div className="flex items-center gap-2">
+        {!isAuto && (
+          <>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Switch
+                checked={fieldState.isBaseline}
+                onCheckedChange={(checked) => handleToggleBaselineField(fieldName, checked)}
+                disabled={isLocked || !isEditing}
+                className="data-[state=checked]:bg-primary"
+              />
+            )}
+          </>
+        )}
+        
+        {fieldState.isPending && (
+          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs">
+            ⏳ Pending
+          </Badge>
+        )}
+        
+        {(fieldState.isBaseline || isAuto) && !fieldState.isPending && (
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs flex items-center gap-1">
+            <Lock className="h-3 w-3" />
+            Baseline
+          </Badge>
+        )}
+      </div>
+    );
+  };
 
   // WBS State (Phases + Deliverables)
   const [wbsPhases, setWbsPhases] = useState<PhaseData[]>([
@@ -585,17 +746,23 @@ export const ProjectPlanPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-foreground mb-4">Basic Project Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Project Title */}
+                      {/* Project Title (Auto-Baseline) */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground flex items-center">
-                          Project Title <span className="text-destructive ml-1">*</span>
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-medium text-foreground flex items-center">
+                            Project Title <span className="text-destructive ml-1">*</span>
+                          </label>
+                          {renderBaselineToggle('projectName', 'Project Title')}
+                        </div>
                         <Input
                           value={formData.libellé}
                           onChange={(e) => updateFormData({ libellé: e.target.value })}
                           disabled={!isEditing || isLocked}
                           maxLength={250}
-                          className={cn(errors.libellé && 'border-destructive')}
+                          className={cn(
+                            errors.libellé && 'border-destructive',
+                            baselineFields.projectName?.isBaseline && 'bg-primary/5 border-primary/30'
+                          )}
                           placeholder="Enter project title"
                         />
                         <p className="text-xs text-muted-foreground">{formData.libellé.length}/250 characters</p>
@@ -729,38 +896,50 @@ export const ProjectPlanPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-foreground mb-4">Temporal Planning</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Start Date */}
+                      {/* Start Date (Auto-Baseline) */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground flex items-center">
-                          Planned Start Date <span className="text-destructive ml-1">*</span>
-                          <BaselineImpactIcon
-                            isValidated={baselineStatus === 'validated'}
-                            hasChanged={formData.date_debut_planifiée !== initialFormData?.date_debut_planifiée}
-                          />
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-medium text-foreground flex items-center">
+                            Planned Start Date <span className="text-destructive ml-1">*</span>
+                            <BaselineImpactIcon
+                              isValidated={baselineStatus === 'validated'}
+                              hasChanged={formData.date_debut_planifiée !== initialFormData?.date_debut_planifiée}
+                            />
+                          </label>
+                          {renderBaselineToggle('startDate', 'Start Date')}
+                        </div>
                         <Input
                           type="date"
                           value={formData.date_debut_planifiée}
                           onChange={(e) => updateFormData({ date_debut_planifiée: e.target.value })}
                           disabled={!isEditing || isLocked}
+                          className={cn(
+                            baselineFields.startDate?.isBaseline && 'bg-primary/5 border-primary/30'
+                          )}
                         />
                       </div>
 
-                      {/* End Date */}
+                      {/* End Date (Auto-Baseline) */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground flex items-center">
-                          Planned End Date <span className="text-destructive ml-1">*</span>
-                          <BaselineImpactIcon
-                            isValidated={baselineStatus === 'validated'}
-                            hasChanged={formData.date_fin_planifiée !== initialFormData?.date_fin_planifiée}
-                          />
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-medium text-foreground flex items-center">
+                            Planned End Date <span className="text-destructive ml-1">*</span>
+                            <BaselineImpactIcon
+                              isValidated={baselineStatus === 'validated'}
+                              hasChanged={formData.date_fin_planifiée !== initialFormData?.date_fin_planifiée}
+                            />
+                          </label>
+                          {renderBaselineToggle('endDate', 'End Date')}
+                        </div>
                         <Input
                           type="date"
                           value={formData.date_fin_planifiée}
                           onChange={(e) => updateFormData({ date_fin_planifiée: e.target.value })}
                           disabled={!isEditing || isLocked}
                           min={formData.date_debut_planifiée}
+                          className={cn(
+                            baselineFields.endDate?.isBaseline && 'bg-primary/5 border-primary/30'
+                          )}
                         />
                         {errors.dates && <p className="text-xs text-destructive">{errors.dates}</p>}
                       </div>
@@ -796,22 +975,28 @@ export const ProjectPlanPage: React.FC = () => {
                         sourceLabel="MD.Currency"
                       />
 
-                      {/* Budget Amount */}
+                      {/* Budget Amount (Auto-Baseline) */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground flex items-center">
-                          Budget Amount <span className="text-destructive ml-1">*</span>
-                          <BaselineImpactIcon
-                            isValidated={baselineStatus === 'validated'}
-                            hasChanged={formData.montant_budget_total !== initialFormData?.montant_budget_total}
-                          />
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-medium text-foreground flex items-center">
+                            Budget Amount <span className="text-destructive ml-1">*</span>
+                            <BaselineImpactIcon
+                              isValidated={baselineStatus === 'validated'}
+                              hasChanged={formData.montant_budget_total !== initialFormData?.montant_budget_total}
+                            />
+                          </label>
+                          {renderBaselineToggle('globalBudget', 'Global Budget')}
+                        </div>
                         <Input
                           type="number"
                           value={formData.montant_budget_total}
                           onChange={(e) => updateFormData({ montant_budget_total: Number(e.target.value) })}
                           disabled={!isEditing || isLocked}
                           min={1}
-                          className={cn(errors.budget && 'border-destructive')}
+                          className={cn(
+                            errors.budget && 'border-destructive',
+                            baselineFields.globalBudget?.isBaseline && 'bg-primary/5 border-primary/30'
+                          )}
                         />
                         {errors.budget && <p className="text-xs text-destructive">{errors.budget}</p>}
                       </div>
@@ -1264,6 +1449,18 @@ export const ProjectPlanPage: React.FC = () => {
             debounceMs={5000}
           />
         )}
+
+        {/* Baseline Change Request Modal */}
+        <BaselineChangeRequestModal
+          isOpen={changeRequestModal.isOpen}
+          onClose={() => setChangeRequestModal(prev => ({ ...prev, isOpen: false }))}
+          onSubmit={changeRequestModal.onConfirm}
+          fieldName={changeRequestModal.fieldName}
+          fieldLabel={changeRequestModal.fieldLabel}
+          oldValue={changeRequestModal.oldValue}
+          newValue={changeRequestModal.newValue}
+          isSubmitting={isSubmittingChangeRequest}
+        />
       </div>
     </PageContainer>
   );
