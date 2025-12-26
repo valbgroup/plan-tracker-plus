@@ -23,5 +23,9 @@ export { RiskFormModal, RiskCard, RisksPlanSection, RisksTrackingTable } from '.
 // Issues Components
 export { IssueFormModal, IssueCard, IssuesPlanSection, IssuesTrackingTable } from './components/issues';
 
+// Log Components
+export { BaselineChangeLogTab, OperationalChangeLogTab, PendingChangeRequestsTab } from './components/log';
+
 // Types
 export * from './types/risks-issues.types';
+export * from './components/log/types';
