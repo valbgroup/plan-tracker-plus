@@ -372,16 +372,22 @@ export const BudgetEnvelopesTable: React.FC<BudgetEnvelopesTableProps> = ({
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={envelope.fundingSourceId || ''}
-                        onValueChange={(v) => handleUpdateEnvelope(envelope.id, 'fundingSourceId', v || undefined)}
+                        value={envelope.fundingSourceId || '__none__'}
+                        onValueChange={(v) =>
+                          handleUpdateEnvelope(
+                            envelope.id,
+                            'fundingSourceId',
+                            v === '__none__' ? undefined : v
+                          )
+                        }
                         disabled={disabled}
                       >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="Optional" />
                         </SelectTrigger>
                         <SelectContent className="bg-popover border shadow-lg z-50">
-                          <SelectItem value="">None</SelectItem>
-                          {fundingSources.map(s => (
+                          <SelectItem value="__none__">None</SelectItem>
+                          {fundingSources.map((s) => (
                             <SelectItem key={s.id} value={s.id}>
                               {s.label}
                             </SelectItem>
