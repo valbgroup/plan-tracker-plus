@@ -13,6 +13,11 @@ import OperationalDashboard from "./pages/dashboard/OperationalDashboard";
 import TacticalDashboard from "./pages/dashboard/TacticalDashboard";
 import StrategicDashboard from "./pages/dashboard/StrategicDashboard";
 
+// Public Pages
+import { PublicLayout } from "@/components/public";
+import { HomePage, PricingPage, FeaturesPage } from "@/pages/public";
+import { LoginPage as PublicLoginPage, SignupPage, VerifyEmailPage } from "@/pages/public/auth";
+
 // Projects Module
 import { 
   ProjectsLayout,
@@ -56,8 +61,22 @@ const App = () => (
       <Sonner />
       <HashRouter>
         <Routes>
-          {/* Public routes (future: will be under /public/*) */}
-          <Route path="/login" element={<LoginPage />} />
+          {/* ====================================== */}
+          {/* PUBLIC ROUTES (/public/*) - Marketing */}
+          {/* ====================================== */}
+          <Route path="/public" element={<PublicLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="features" element={<FeaturesPage />} />
+            <Route path="pricing" element={<PricingPage />} />
+          </Route>
+          
+          {/* Public Auth Routes (no layout wrapper) */}
+          <Route path="/public/auth/login" element={<PublicLoginPage />} />
+          <Route path="/public/auth/signup" element={<SignupPage />} />
+          <Route path="/public/auth/verify-email" element={<VerifyEmailPage />} />
+
+          {/* Legacy login redirect */}
+          <Route path="/login" element={<Navigate to="/public/auth/login" replace />} />
 
           {/* Root redirect - redirects to app dashboard */}
           <Route path="/" element={<Index />} />
