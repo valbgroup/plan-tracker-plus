@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 
-// TESTING MODE: Always redirect to dashboard (no auth check)
+// Root redirect - always go to app dashboard
 export default function Index() {
-  return <Navigate to="/dashboard/operational" replace />;
+  return <Navigate to="/app/dashboard/operational" replace />;
 }

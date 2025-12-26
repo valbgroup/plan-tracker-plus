@@ -11,8 +11,8 @@ const projectTabs = [
 ];
 
 const moduleTabs = [
-  { label: 'Projects', href: '/projects', icon: List },
-  { label: 'Dashboard', href: '/projects/dashboard', icon: LayoutDashboard },
+  { label: 'Projects', href: '/app/projects', icon: List },
+  { label: 'Dashboard', href: '/app/projects/dashboard', icon: LayoutDashboard },
 ];
 
 export function ProjectsLayout() {
@@ -41,7 +41,7 @@ export function ProjectsLayout() {
                   onClick={() => navigate(tab.href)}
                   className={cn(
                     'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
-                    currentModulePath === tab.href || (tab.href === '/projects' && currentModulePath.startsWith('/projects') && currentModulePath !== '/projects/dashboard')
+                    currentModulePath === tab.href || (tab.href === '/app/projects' && currentModulePath.startsWith('/app/projects') && currentModulePath !== '/app/projects/dashboard')
                       ? 'border-primary text-primary'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
                   )}
@@ -59,7 +59,7 @@ export function ProjectsLayout() {
           <div className="border-b border-border bg-card">
             {/* Breadcrumb */}
             <div className="px-6 py-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <NavLink to="/projects" className="hover:text-foreground transition-colors">
+              <NavLink to="/app/projects" className="hover:text-foreground transition-colors">
                 Projects
               </NavLink>
               <ChevronRight className="w-4 h-4" />
@@ -72,7 +72,7 @@ export function ProjectsLayout() {
               {projectTabs.map((tab) => (
                 <NavLink
                   key={tab.href}
-                  to={`/projects/${projectId}/${tab.href}`}
+                  to={`/app/projects/${projectId}/${tab.href}`}
                   className={cn(
                     'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors',
                     currentTab === tab.href

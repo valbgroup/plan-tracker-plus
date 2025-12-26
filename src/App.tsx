@@ -56,19 +56,23 @@ const App = () => (
       <Sonner />
       <HashRouter>
         <Routes>
-          {/* Public routes */}
+          {/* Public routes (future: will be under /public/*) */}
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Root redirect */}
+          {/* Root redirect - redirects to app dashboard */}
           <Route path="/" element={<Index />} />
           
+          {/* ====================================== */}
+          {/* APP ROUTES (/app/*) - SaaS Product    */}
+          {/* ====================================== */}
+          
           {/* Dashboard routes */}
-          <Route path="/dashboard/operational" element={<AppLayout><OperationalDashboard /></AppLayout>} />
-          <Route path="/dashboard/tactical" element={<AppLayout><TacticalDashboard /></AppLayout>} />
-          <Route path="/dashboard/strategic" element={<AppLayout><StrategicDashboard /></AppLayout>} />
+          <Route path="/app/dashboard/operational" element={<AppLayout><OperationalDashboard /></AppLayout>} />
+          <Route path="/app/dashboard/tactical" element={<AppLayout><TacticalDashboard /></AppLayout>} />
+          <Route path="/app/dashboard/strategic" element={<AppLayout><StrategicDashboard /></AppLayout>} />
 
           {/* Project routes */}
-          <Route path="/projects" element={<ProjectsLayout />}>
+          <Route path="/app/projects" element={<ProjectsLayout />}>
             <Route index element={<ProjectListPage />} />
             <Route path="dashboard" element={<ProjectDashboardPage />} />
             <Route path=":id" element={<ProjectDetailsLayout />}>
@@ -79,32 +83,66 @@ const App = () => (
           </Route>
 
           {/* Master Data routes */}
-          <Route path="/master-data" element={<Navigate to="/master-data/qualifications" replace />} />
-          <Route path="/master-data/qualifications" element={<AppLayout><ProjectQualificationsPage /></AppLayout>} />
-          <Route path="/master-data/deliverables" element={<AppLayout><DeliverableQualificationsPage /></AppLayout>} />
-          <Route path="/master-data/budget" element={<AppLayout><BudgetPage /></AppLayout>} />
-          <Route path="/master-data/locations" element={<AppLayout><LocalizationPage /></AppLayout>} />
-          <Route path="/master-data/organization" element={<AppLayout><OrganizationPage /></AppLayout>} />
-          <Route path="/master-data/resources" element={<AppLayout><ResourcesPage /></AppLayout>} />
-          <Route path="/master-data/risks" element={<AppLayout><RisksIssuesPage /></AppLayout>} />
-          <Route path="/master-data/agile" element={<AppLayout><AgilePage /></AppLayout>} />
-          <Route path="/master-data/calendars" element={<AppLayout><CalendarsPage /></AppLayout>} />
+          <Route path="/app/master-data" element={<Navigate to="/app/master-data/qualifications" replace />} />
+          <Route path="/app/master-data/qualifications" element={<AppLayout><ProjectQualificationsPage /></AppLayout>} />
+          <Route path="/app/master-data/deliverables" element={<AppLayout><DeliverableQualificationsPage /></AppLayout>} />
+          <Route path="/app/master-data/budget" element={<AppLayout><BudgetPage /></AppLayout>} />
+          <Route path="/app/master-data/locations" element={<AppLayout><LocalizationPage /></AppLayout>} />
+          <Route path="/app/master-data/organization" element={<AppLayout><OrganizationPage /></AppLayout>} />
+          <Route path="/app/master-data/resources" element={<AppLayout><ResourcesPage /></AppLayout>} />
+          <Route path="/app/master-data/risks" element={<AppLayout><RisksIssuesPage /></AppLayout>} />
+          <Route path="/app/master-data/agile" element={<AppLayout><AgilePage /></AppLayout>} />
+          <Route path="/app/master-data/calendars" element={<AppLayout><CalendarsPage /></AppLayout>} />
 
           {/* History & Audit - Primary route */}
-          <Route path="/history" element={<AppLayout><GlobalAuditPage /></AppLayout>} />
-          
-          {/* Redirects for backward compatibility */}
-          <Route path="/history/audit" element={<Navigate to="/history" replace />} />
-          <Route path="/history/impact" element={<Navigate to="/history" replace />} />
-          <Route path="/history/impact-analysis" element={<Navigate to="/history" replace />} />
-          <Route path="/history/compliance" element={<Navigate to="/history" replace />} />
-          <Route path="/history/reports" element={<Navigate to="/history" replace />} />
-          <Route path="/global-audit" element={<Navigate to="/history" replace />} />
+          <Route path="/app/history" element={<AppLayout><GlobalAuditPage /></AppLayout>} />
 
           {/* Settings routes */}
-          <Route path="/settings" element={<Navigate to="/settings/system" replace />} />
-          <Route path="/settings/system" element={<AppLayout><SystemSettings /></AppLayout>} />
-          <Route path="/settings/profile" element={<AppLayout><UserSettings /></AppLayout>} />
+          <Route path="/app/settings" element={<Navigate to="/app/settings/system" replace />} />
+          <Route path="/app/settings/system" element={<AppLayout><SystemSettings /></AppLayout>} />
+          <Route path="/app/settings/profile" element={<AppLayout><UserSettings /></AppLayout>} />
+
+          {/* ====================================== */}
+          {/* LEGACY REDIRECTS (old routes → /app/*) */}
+          {/* ====================================== */}
+          
+          {/* Dashboard redirects */}
+          <Route path="/dashboard/operational" element={<Navigate to="/app/dashboard/operational" replace />} />
+          <Route path="/dashboard/tactical" element={<Navigate to="/app/dashboard/tactical" replace />} />
+          <Route path="/dashboard/strategic" element={<Navigate to="/app/dashboard/strategic" replace />} />
+          
+          {/* Projects redirects */}
+          <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
+          <Route path="/projects/dashboard" element={<Navigate to="/app/projects/dashboard" replace />} />
+          <Route path="/projects/:id/plan" element={<Navigate to="/app/projects/:id/plan" replace />} />
+          <Route path="/projects/:id/tracking" element={<Navigate to="/app/projects/:id/tracking" replace />} />
+          <Route path="/projects/:id/history" element={<Navigate to="/app/projects/:id/history" replace />} />
+          
+          {/* Master Data redirects */}
+          <Route path="/master-data" element={<Navigate to="/app/master-data/qualifications" replace />} />
+          <Route path="/master-data/qualifications" element={<Navigate to="/app/master-data/qualifications" replace />} />
+          <Route path="/master-data/deliverables" element={<Navigate to="/app/master-data/deliverables" replace />} />
+          <Route path="/master-data/budget" element={<Navigate to="/app/master-data/budget" replace />} />
+          <Route path="/master-data/locations" element={<Navigate to="/app/master-data/locations" replace />} />
+          <Route path="/master-data/organization" element={<Navigate to="/app/master-data/organization" replace />} />
+          <Route path="/master-data/resources" element={<Navigate to="/app/master-data/resources" replace />} />
+          <Route path="/master-data/risks" element={<Navigate to="/app/master-data/risks" replace />} />
+          <Route path="/master-data/agile" element={<Navigate to="/app/master-data/agile" replace />} />
+          <Route path="/master-data/calendars" element={<Navigate to="/app/master-data/calendars" replace />} />
+          
+          {/* History redirects */}
+          <Route path="/history" element={<Navigate to="/app/history" replace />} />
+          <Route path="/history/audit" element={<Navigate to="/app/history" replace />} />
+          <Route path="/history/impact" element={<Navigate to="/app/history" replace />} />
+          <Route path="/history/impact-analysis" element={<Navigate to="/app/history" replace />} />
+          <Route path="/history/compliance" element={<Navigate to="/app/history" replace />} />
+          <Route path="/history/reports" element={<Navigate to="/app/history" replace />} />
+          <Route path="/global-audit" element={<Navigate to="/app/history" replace />} />
+          
+          {/* Settings redirects */}
+          <Route path="/settings" element={<Navigate to="/app/settings/system" replace />} />
+          <Route path="/settings/system" element={<Navigate to="/app/settings/system" replace />} />
+          <Route path="/settings/profile" element={<Navigate to="/app/settings/profile" replace />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />

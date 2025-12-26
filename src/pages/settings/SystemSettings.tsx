@@ -32,7 +32,7 @@ export default function SystemSettings({ tab }: SystemSettingsProps) {
 
   const handleTabChange = (value: string) => {
     if (tab) {
-      navigate(`/settings/system/${value === 'organization' ? '' : value}`);
+      navigate(`/app/settings/system/${value === 'organization' ? '' : value}`);
     } else {
       setSearchParams({ tab: value });
     }

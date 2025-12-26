@@ -60,45 +60,45 @@ const navigation: NavItem[] = [
     title: 'Dashboard',
     icon: LayoutDashboard,
     children: [
-      { title: 'Operational', href: '/dashboard/operational', icon: Activity },
-      { title: 'Tactical', href: '/dashboard/tactical', icon: Target },
-      { title: 'Strategic', href: '/dashboard/strategic', icon: TrendingUp },
+      { title: 'Operational', href: '/app/dashboard/operational', icon: Activity },
+      { title: 'Tactical', href: '/app/dashboard/tactical', icon: Target },
+      { title: 'Strategic', href: '/app/dashboard/strategic', icon: TrendingUp },
     ],
   },
   {
     title: 'Projects',
     icon: FolderKanban,
     children: [
-      { title: 'Project List', href: '/projects', icon: FolderKanban },
-      { title: 'Portfolio Dashboard', href: '/projects/dashboard', icon: BarChart3 },
+      { title: 'Project List', href: '/app/projects', icon: FolderKanban },
+      { title: 'Portfolio Dashboard', href: '/app/projects/dashboard', icon: BarChart3 },
     ],
   },
   {
     title: 'Master Data',
     icon: Database,
     children: [
-      { title: 'Project Qualifications', href: '/master-data/qualifications', icon: FileText },
-      { title: 'Deliverables', href: '/master-data/deliverables', icon: FileText },
-      { title: 'Budget Settings', href: '/master-data/budget', icon: Briefcase },
-      { title: 'Locations', href: '/master-data/locations', icon: MapPin },
-      { title: 'Organization', href: '/master-data/organization', icon: Building2 },
-      { title: 'Resources', href: '/master-data/resources', icon: Users },
-      { title: 'Risks & Issues', href: '/master-data/risks', icon: Shield },
-      { title: 'Agile', href: '/master-data/agile', icon: Zap },
-      { title: 'Calendars', href: '/master-data/calendars', icon: Calendar },
+      { title: 'Project Qualifications', href: '/app/master-data/qualifications', icon: FileText },
+      { title: 'Deliverables', href: '/app/master-data/deliverables', icon: FileText },
+      { title: 'Budget Settings', href: '/app/master-data/budget', icon: Briefcase },
+      { title: 'Locations', href: '/app/master-data/locations', icon: MapPin },
+      { title: 'Organization', href: '/app/master-data/organization', icon: Building2 },
+      { title: 'Resources', href: '/app/master-data/resources', icon: Users },
+      { title: 'Risks & Issues', href: '/app/master-data/risks', icon: Shield },
+      { title: 'Agile', href: '/app/master-data/agile', icon: Zap },
+      { title: 'Calendars', href: '/app/master-data/calendars', icon: Calendar },
     ],
   },
   {
     title: 'History & Audit',
     icon: History,
-    href: '/history',
+    href: '/app/history',
   },
   {
     title: 'Settings',
     icon: Settings,
     children: [
-      { title: 'System', href: '/settings/system', icon: Zap },
-      { title: 'Profile', href: '/settings/profile', icon: Users },
+      { title: 'System', href: '/app/settings/system', icon: Zap },
+      { title: 'Profile', href: '/app/settings/profile', icon: Users },
     ],
   },
 ];
@@ -115,7 +115,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="h-16 flex items-center justify-center border-b border-sidebar-border">
-        <NavLink to="/" className="flex items-center gap-2 px-2">
+        <NavLink to="/app/dashboard/operational" className="flex items-center gap-2 px-2">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <Zap className="w-5 h-5 text-primary-foreground" />
           </div>

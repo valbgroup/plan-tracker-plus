@@ -52,7 +52,7 @@ export function ProjectCard({ project, delay = 0 }: ProjectCardProps) {
         'animate-fade-in-up opacity-0'
       )}
       style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-      onClick={() => navigate(`/projects/${project.id}/plan`)}
+      onClick={() => navigate(`/app/projects/${project.id}/plan`)}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">

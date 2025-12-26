@@ -37,7 +37,7 @@ export const ProjectDetailsLayout: React.FC = () => {
         <h2 className="text-xl font-semibold text-foreground">Project Not Found</h2>
         <p className="text-muted-foreground mt-2">The project you're looking for doesn't exist.</p>
         <Button
-          onClick={() => navigate('/projects')}
+          onClick={() => navigate('/app/projects')}
           className="mt-4"
         >
           Back to Projects
@@ -47,7 +47,7 @@ export const ProjectDetailsLayout: React.FC = () => {
   }
 
   const isActivePath = (path: string) => {
-    const basePath = `/projects/${id}`;
+    const basePath = `/app/projects/${id}`;
     if (path === 'plan') return location.pathname === `${basePath}` || location.pathname === `${basePath}/plan`;
     return location.pathname === `${basePath}/${path}`;
   };
@@ -63,7 +63,7 @@ export const ProjectDetailsLayout: React.FC = () => {
       <div className="border-b border-border bg-card px-6 py-4">
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate('/app/projects')}
             className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium w-fit"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -87,7 +87,7 @@ export const ProjectDetailsLayout: React.FC = () => {
         <div className="px-6">
           <nav className="flex gap-1">
             <Link
-              to={`/projects/${id}/plan`}
+              to={`/app/projects/${id}/plan`}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 isActivePath('plan')
                   ? 'border-primary text-primary'
@@ -97,7 +97,7 @@ export const ProjectDetailsLayout: React.FC = () => {
               Plan
             </Link>
             <Link
-              to={`/projects/${id}/tracking`}
+              to={`/app/projects/${id}/tracking`}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 isActivePath('tracking')
                   ? 'border-primary text-primary'
@@ -107,7 +107,7 @@ export const ProjectDetailsLayout: React.FC = () => {
               Tracking
             </Link>
             <Link
-              to={`/projects/${id}/history`}
+              to={`/app/projects/${id}/history`}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 isActivePath('history')
                   ? 'border-primary text-primary'
