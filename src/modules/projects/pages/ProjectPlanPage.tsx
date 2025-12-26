@@ -31,6 +31,7 @@ import { BaselineVersionsTable, BaselineVersionData } from '../components/audit/
 import { ModificationLogTable, ModificationLogData } from '../components/audit/ModificationLogTable';
 import { ChangeRequestsTable, ChangeRequestData } from '../components/audit/ChangeRequestsTable';
 import { useRBAC } from '@/hooks/useRBAC';
+import { RoleSwitcher } from '@/components/RoleSwitcher';
 import {
   usePortfolios,
   usePrograms,
@@ -479,6 +480,12 @@ export const ProjectPlanPage: React.FC = () => {
         />
 
         <div className="p-6 space-y-6">
+          {/* TEST ONLY - Role Switcher for testing RBAC */}
+          <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <span className="text-sm text-amber-700 dark:text-amber-300 font-medium">🧪 TEST MODE: Switch roles to test permissions</span>
+            <RoleSwitcher />
+          </div>
+
           {/* Success Message */}
           {successMessage && (
             <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
