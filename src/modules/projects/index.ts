@@ -13,3 +13,6 @@ export { ProjectDashboardPage } from './pages/ProjectDashboardPage';
 export { CreateProjectWizard } from './components/CreateProjectWizard';
 export { BaselineSelector } from './components/BaselineSelector';
 export { VarianceAnalysis } from './components/VarianceAnalysis';
+export { BaselineField } from './components/BaselineField';
+export { BaselineChangeRequestModal } from './components/BaselineChangeRequestModal';
+export { IdentificationSection } from './components/IdentificationSection';
