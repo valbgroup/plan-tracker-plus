@@ -31,6 +31,9 @@ import { MonthlyBudgetTable, MonthlyBudgetData } from '../components/budget/Mont
 import { ResourcesTable, ResourceData } from '../components/resources/ResourcesTable';
 import { BaselineVersionsTable, BaselineVersionData } from '../components/audit/BaselineVersionsTable';
 import { ModificationLogTable, ModificationLogData } from '../components/audit/ModificationLogTable';
+import { RisksPlanSection } from '../components/risks';
+import { IssuesPlanSection } from '../components/issues';
+import { Risk, Issue } from '../types/risks-issues.types';
 import { ChangeRequestsTable, ChangeRequestData } from '../components/audit/ChangeRequestsTable';
 import { useRBAC } from '@/hooks/useRBAC';
 import {
@@ -73,6 +76,7 @@ import {
   ChevronDown,
   ChevronRight,
   Lock,
+  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -91,7 +95,7 @@ const MOCK_BASELINES: Baseline[] = [
   { id: 'bl-2', version: 2, createdDate: new Date('2024-03-01'), createdBy: 'Admin', description: 'Post-planning baseline', status: 'active' },
 ];
 
-type TabId = 'identification' | 'wbs' | 'stakeholders' | 'resources' | 'budget' | 'log';
+type TabId = 'identification' | 'wbs' | 'stakeholders' | 'resources' | 'budget' | 'risks' | 'log';
 
 interface FormData {
   // Basic Info
@@ -358,6 +362,143 @@ export const ProjectPlanPage: React.FC = () => {
   ]);
   const [initialResources, setInitialResources] = useState<ResourceData[]>([...resources]);
 
+  // Risks State (TAB.6 - Risks & Issues)
+  const [risks, setRisks] = useState<Risk[]>([
+    {
+      id: 'risk-1',
+      title: 'Resource Shortage',
+      description: 'Senior developer may not be available during critical phase',
+      type: 'resource',
+      probability: 3,
+      impact: 4,
+      score: 12,
+      response: 'mitigate',
+      ownerId: '1',
+      ownerName: 'Ahmed Ben Ali',
+      targetDate: '2025-02-15',
+      observation: 'Plan to secure backup resources from partner company',
+      status: 'identified',
+      createdAt: '2025-01-10',
+      updatedAt: '2025-01-10',
+    },
+    {
+      id: 'risk-2',
+      title: 'Schedule Delay',
+      description: 'Delays in requirements phase may impact downstream deliverables',
+      type: 'schedule',
+      probability: 2,
+      impact: 3,
+      score: 6,
+      response: 'mitigate',
+      ownerId: '2',
+      ownerName: 'Fatima Bouali',
+      targetDate: '2025-02-28',
+      observation: 'Buffer added in schedule',
+      status: 'assessed',
+      createdAt: '2025-01-15',
+      updatedAt: '2025-01-15',
+    },
+  ]);
+
+  // Issues State (TAB.6 - Risks & Issues)
+  const [issues, setIssues] = useState<Issue[]>([
+    {
+      id: 'issue-1',
+      title: 'DB Connection Pooling',
+      description: 'Current implementation has connection leak issues under load',
+      category: 'technical',
+      priority: 'high',
+      action: 'Implement HikariCP connection pool by Jan 25',
+      ownerId: '2',
+      ownerName: 'Fatima Bouali',
+      targetDate: '2025-01-25',
+      status: 'done',
+      createdAt: '2025-01-05',
+      updatedAt: '2025-01-25',
+    },
+    {
+      id: 'issue-2',
+      title: 'API Authentication',
+      description: 'Need to implement OAuth 2.0 for API security',
+      category: 'technical',
+      priority: 'high',
+      action: 'Integrate OAuth provider and update API endpoints',
+      ownerId: '1',
+      ownerName: 'Ahmed Ben Ali',
+      targetDate: '2025-02-15',
+      status: 'in_progress',
+      progress: 60,
+      createdAt: '2025-01-10',
+      updatedAt: '2025-02-10',
+    },
+  ]);
+
+  // Employees for Risk/Issue owner selection
+  const riskIssueEmployees = [
+    { id: '1', name: 'Ahmed Ben Ali' },
+    { id: '2', name: 'Fatima Bouali' },
+    { id: '3', name: 'Karim Hamdi' },
+  ];
+
+  // Phases and deliverables for linking
+  const phasesForLinking = wbsPhases.map(p => ({ id: p.id, title: p.title }));
+  const deliverablesForLinking = wbsDeliverables.map(d => ({ id: d.id, title: d.title }));
+
+  // Risk handlers
+  const handleAddRisk = async (riskData: Omit<Risk, 'id' | 'createdAt' | 'updatedAt' | 'score'>) => {
+    const now = new Date().toISOString();
+    const newRisk: Risk = {
+      ...riskData,
+      id: `risk-${Date.now()}`,
+      score: riskData.probability * riskData.impact,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setRisks(prev => [...prev, newRisk]);
+    setHasModifications(true);
+  };
+
+  const handleUpdateRisk = async (riskId: string, riskData: Omit<Risk, 'id' | 'createdAt' | 'updatedAt' | 'score'>) => {
+    setRisks(prev => prev.map(r =>
+      r.id === riskId
+        ? { ...r, ...riskData, score: riskData.probability * riskData.impact, updatedAt: new Date().toISOString() }
+        : r
+    ));
+    setHasModifications(true);
+  };
+
+  const handleDeleteRisk = async (riskId: string) => {
+    setRisks(prev => prev.filter(r => r.id !== riskId));
+    setHasModifications(true);
+  };
+
+  // Issue handlers
+  const handleAddIssue = async (issueData: Omit<Issue, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newIssue: Issue = {
+      ...issueData,
+      id: `issue-${Date.now()}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setIssues(prev => [...prev, newIssue]);
+    setHasModifications(true);
+  };
+
+  const handleUpdateIssue = async (issueId: string, issueData: Omit<Issue, 'id' | 'createdAt' | 'updatedAt'>) => {
+    setIssues(prev => prev.map(i =>
+      i.id === issueId
+        ? { ...i, ...issueData, updatedAt: new Date().toISOString() }
+        : i
+    ));
+    setHasModifications(true);
+  };
+
+  const handleDeleteIssue = async (issueId: string) => {
+    setIssues(prev => prev.filter(i => i.id !== issueId));
+    setHasModifications(true);
+  };
+
   // Audit Log State (TAB.6)
   const [baselineVersions, setBaselineVersions] = useState<BaselineVersionData[]>([
     { id: 'v-1', versionNumber: 'V1.0', createdDate: new Date('2025-01-15'), createdBy: 'Ahmed Benali', createdByEmail: 'ahmed@company.dz', changeType: 'STRUCTURAL', modifiedItemsCount: 5, modifiedItems: ['Project.Title', 'Phase.1', 'Phase.2', 'Deliverable.1', 'Budget.Total'], justification: 'Initial baseline after planning phase', status: 'ARCHIVED', businessImpact: 3 },
@@ -426,6 +567,7 @@ export const ProjectPlanPage: React.FC = () => {
     { id: 'stakeholders' as TabId, label: 'Stakeholders', icon: Users },
     { id: 'resources' as TabId, label: 'Resources', icon: Calendar },
     { id: 'budget' as TabId, label: 'Budget', icon: DollarSign },
+    { id: 'risks' as TabId, label: 'Risks & Issues', icon: AlertTriangle },
     { id: 'log' as TabId, label: 'Log', icon: History },
   ];
 
@@ -1366,6 +1508,31 @@ export const ProjectPlanPage: React.FC = () => {
                     onSave={async () => {
                       await new Promise(resolve => setTimeout(resolve, 500));
                     }}
+                    disabled={isLocked}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'risks' && (
+                <div className="space-y-8">
+                  <RisksPlanSection
+                    risks={risks}
+                    onAddRisk={handleAddRisk}
+                    onUpdateRisk={handleUpdateRisk}
+                    onDeleteRisk={handleDeleteRisk}
+                    employees={riskIssueEmployees}
+                    phases={phasesForLinking}
+                    deliverables={deliverablesForLinking}
+                    disabled={isLocked}
+                  />
+                  <IssuesPlanSection
+                    issues={issues}
+                    onAddIssue={handleAddIssue}
+                    onUpdateIssue={handleUpdateIssue}
+                    onDeleteIssue={handleDeleteIssue}
+                    employees={riskIssueEmployees}
+                    phases={phasesForLinking}
+                    deliverables={deliverablesForLinking}
                     disabled={isLocked}
                   />
                 </div>
