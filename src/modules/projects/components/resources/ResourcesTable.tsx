@@ -367,11 +367,13 @@ export const ResourcesTable: React.FC<ResourcesTableProps> = ({
                           <SelectValue placeholder="Select resource" />
                         </SelectTrigger>
                         <SelectContent className="bg-popover border shadow-lg z-50">
-                          {resourceOptions.map(r => (
-                            <SelectItem key={r.id} value={r.id}>
-                              {r.label}
-                            </SelectItem>
-                          ))}
+                          {resourceOptions
+                            .filter(r => r.id && r.id.trim() !== '')
+                            .map(r => (
+                              <SelectItem key={r.id} value={r.id}>
+                                {r.label}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                       {resErrors.resourceId && (
