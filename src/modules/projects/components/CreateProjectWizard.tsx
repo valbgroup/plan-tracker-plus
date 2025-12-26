@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -13,7 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MOCK_EMPLOYEES } from '@/data/masterDataMock';
+import { toast } from '@/hooks/use-toast';
+import { 
+  MOCK_EMPLOYEES, 
+  MOCK_LIFECYCLE_APPROACHES, 
+  MOCK_PROJ_NATURES 
+} from '@/data/masterDataMock';
+
 interface CreateProjectWizardProps {
   onClose: () => void;
   onSuccess: () => void;
@@ -23,280 +28,335 @@ export const CreateProjectWizard: React.FC<CreateProjectWizardProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    title: '',
-    code: '',
-    description: '',
+    projectName: '',
     startDate: '',
     endDate: '',
-    manager: '',
-    budget: '',
-    methodology: 'predictive',
+    globalBudget: '',
+    projectManager: '',
+    lifecycleApproach: '',
+    projectNature: '',
+    projectDescription: '',
   });
 
-  const handleNext = () => {
-    if (step < 5) setStep(step + 1);
+  const [calculatedDuration, setCalculatedDuration] = useState<number | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Get active employees for Project Manager dropdown
+  const activeEmployees = MOCK_EMPLOYEES.filter(emp => emp.is_active);
+
+  // Get active lifecycle approaches
+  const activeApproaches = MOCK_LIFECYCLE_APPROACHES.filter(a => a.is_active);
+
+  // Get active project natures
+  const activeNatures = MOCK_PROJ_NATURES.filter(n => n.is_active);
+
+  // Calculate duration whenever dates change
+  useEffect(() => {
+    if (formData.startDate && formData.endDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+      const diffTime = end.getTime() - start.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setCalculatedDuration(diffDays >= 0 ? diffDays : null);
+    } else {
+      setCalculatedDuration(null);
+    }
+  }, [formData.startDate, formData.endDate]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
 
-  const handlePrevious = () => {
-    if (step > 1) setStep(step - 1);
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
 
-  const handleCreate = () => {
-    console.log('Creating project:', formData);
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.projectName.trim()) {
+      newErrors.projectName = 'Project name is required';
+    }
+    if (!formData.startDate) {
+      newErrors.startDate = 'Start date is required';
+    }
+    if (!formData.endDate) {
+      newErrors.endDate = 'End date is required';
+    }
+    if (!formData.globalBudget) {
+      newErrors.globalBudget = 'Global budget is required';
+    }
+    if (!formData.projectManager) {
+      newErrors.projectManager = 'Project manager is required';
+    }
+    if (!formData.lifecycleApproach) {
+      newErrors.lifecycleApproach = 'Lifecycle approach is required';
+    }
+    if (!formData.projectNature) {
+      newErrors.projectNature = 'Project nature is required';
+    }
+
+    // Validate date range
+    if (formData.startDate && formData.endDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+      if (end < start) {
+        newErrors.endDate = 'End date must be after start date';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields correctly.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Creating project:', {
+      ...formData,
+      calculatedDuration,
+    });
+
+    toast({
+      title: "Project Created",
+      description: `Project "${formData.projectName}" has been created successfully.`,
+    });
+
     onSuccess();
   };
 
-  const methodologyOptions = [
-    {
-      value: 'predictive',
-      label: 'Predictive (Waterfall)',
-      desc: 'Traditional sequential approach',
-    },
-    {
-      value: 'agile',
-      label: 'Agile (Scrum/Kanban)',
-      desc: 'Iterative and incremental approach',
-    },
-    {
-      value: 'hybrid',
-      label: 'Hybrid',
-      desc: 'Mix of predictive and agile elements',
-    },
-  ];
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <Card className="w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="sticky top-0 bg-card border-b p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-foreground">Create New Project</h2>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="w-5 h-5" />
             </Button>
           </div>
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <div
-                key={s}
-                className={`flex-1 h-2 rounded-full ${
-                  s <= step ? 'bg-primary' : 'bg-muted'
-                }`}
-              />
-            ))}
-          </div>
         </div>
 
         {/* Content */}
-        <CardContent className="flex-1 overflow-y-auto p-6 space-y-6">
-          {step === 1 && (
-            <>
-              <h3 className="text-lg font-semibold text-foreground">
-                Step 1: Basic Information
+        <CardContent className="flex-1 overflow-y-auto p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Section 1: Project Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                Project Information
               </h3>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Project Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    placeholder="Enter project title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="code">Project Code *</Label>
-                  <Input
-                    id="code"
-                    value={formData.code}
-                    onChange={(e) =>
-                      setFormData({ ...formData, code: e.target.value })
-                    }
-                    placeholder="e.g., PROJ-2024-001"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="Enter project description"
-                    rows={3}
-                  />
-                </div>
+              <div>
+                <Label htmlFor="projectName">Project Name *</Label>
+                <Input
+                  id="projectName"
+                  name="projectName"
+                  value={formData.projectName}
+                  onChange={handleInputChange}
+                  placeholder="Enter project name"
+                  className={errors.projectName ? 'border-destructive' : ''}
+                />
+                {errors.projectName && (
+                  <p className="text-xs text-destructive mt-1">{errors.projectName}</p>
+                )}
               </div>
-            </>
-          )}
+            </div>
 
-          {step === 2 && (
-            <>
-              <h3 className="text-lg font-semibold text-foreground">
-                Step 2: Timeline
+            {/* Section 2: Schedule & Duration */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                Schedule & Duration
               </h3>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="startDate">Start Date *</Label>
                   <Input
                     id="startDate"
+                    name="startDate"
                     type="date"
                     value={formData.startDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, startDate: e.target.value })
-                    }
+                    onChange={handleInputChange}
+                    className={errors.startDate ? 'border-destructive' : ''}
                   />
+                  {errors.startDate && (
+                    <p className="text-xs text-destructive mt-1">{errors.startDate}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="endDate">End Date *</Label>
                   <Input
                     id="endDate"
+                    name="endDate"
                     type="date"
                     value={formData.endDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, endDate: e.target.value })
-                    }
+                    onChange={handleInputChange}
+                    className={errors.endDate ? 'border-destructive' : ''}
                   />
+                  {errors.endDate && (
+                    <p className="text-xs text-destructive mt-1">{errors.endDate}</p>
+                  )}
+                </div>
+                <div>
+                  <Label>Duration</Label>
+                  <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted/50 flex items-center text-muted-foreground">
+                    {calculatedDuration !== null ? `${calculatedDuration} days` : '-'}
+                  </div>
                 </div>
               </div>
-            </>
-          )}
+            </div>
 
-          {step === 3 && (
-            <>
-              <h3 className="text-lg font-semibold text-foreground">
-                Step 3: Team & Budget
+            {/* Section 3: Budget & Team */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                Budget & Team
               </h3>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="manager">Project Manager *</Label>
+                  <Label htmlFor="globalBudget">Global Budget *</Label>
+                  <Input
+                    id="globalBudget"
+                    name="globalBudget"
+                    type="number"
+                    value={formData.globalBudget}
+                    onChange={handleInputChange}
+                    placeholder="Enter budget amount"
+                    className={errors.globalBudget ? 'border-destructive' : ''}
+                  />
+                  {errors.globalBudget && (
+                    <p className="text-xs text-destructive mt-1">{errors.globalBudget}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="projectManager">Project Manager *</Label>
                   <Select
-                    value={formData.manager}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, manager: value })
-                    }
+                    value={formData.projectManager}
+                    onValueChange={(value) => handleSelectChange('projectManager', value)}
                   >
-                    <SelectTrigger id="manager" className="w-full">
+                    <SelectTrigger 
+                      id="projectManager" 
+                      className={`w-full ${errors.projectManager ? 'border-destructive' : ''}`}
+                    >
                       <SelectValue placeholder="Select project manager" />
                     </SelectTrigger>
                     <SelectContent className="bg-popover border shadow-lg z-50">
-                      {MOCK_EMPLOYEES.filter(emp => emp.is_active).map((emp) => (
+                      {activeEmployees.map((emp) => (
                         <SelectItem key={emp.collaborateur_id} value={emp.collaborateur_id}>
                           {emp.matricule} - {emp.prenom} {emp.nom}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div>
-                  <Label htmlFor="budget">Budget *</Label>
-                  <Input
-                    id="budget"
-                    type="number"
-                    value={formData.budget}
-                    onChange={(e) =>
-                      setFormData({ ...formData, budget: e.target.value })
-                    }
-                    placeholder="Enter budget amount"
-                  />
+                  {errors.projectManager && (
+                    <p className="text-xs text-destructive mt-1">{errors.projectManager}</p>
+                  )}
                 </div>
               </div>
-            </>
-          )}
+            </div>
 
-          {step === 4 && (
-            <>
-              <h3 className="text-lg font-semibold text-foreground">
-                Step 4: Methodology
+            {/* Section 4: Project Type */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                Project Type
               </h3>
-              <RadioGroup
-                value={formData.methodology}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, methodology: value })
-                }
-                className="space-y-3"
-              >
-                {methodologyOptions.map((option) => (
-                  <Label
-                    key={option.value}
-                    htmlFor={option.value}
-                    className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-                      formData.methodology === option.value
-                        ? 'bg-primary/10 border-primary'
-                        : 'border-border hover:bg-muted/50'
-                    }`}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="lifecycleApproach">Lifecycle Approach *</Label>
+                  <Select
+                    value={formData.lifecycleApproach}
+                    onValueChange={(value) => handleSelectChange('lifecycleApproach', value)}
                   >
-                    <RadioGroupItem value={option.value} id={option.value} className="mr-3" />
-                    <div>
-                      <div className="font-medium text-foreground">{option.label}</div>
-                      <div className="text-sm text-muted-foreground">{option.desc}</div>
-                    </div>
-                  </Label>
-                ))}
-              </RadioGroup>
-            </>
-          )}
-
-          {step === 5 && (
-            <>
-              <h3 className="text-lg font-semibold text-foreground">
-                Step 5: Review & Confirm
-              </h3>
-              <div className="space-y-4 bg-muted/50 p-4 rounded-lg">
-                <div>
-                  <p className="text-sm text-muted-foreground">Project Title</p>
-                  <p className="font-semibold text-foreground">{formData.title || '-'}</p>
+                    <SelectTrigger 
+                      id="lifecycleApproach" 
+                      className={`w-full ${errors.lifecycleApproach ? 'border-destructive' : ''}`}
+                    >
+                      <SelectValue placeholder="Select approach" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border shadow-lg z-50">
+                      {activeApproaches.map((approach) => (
+                        <SelectItem key={approach.approche_id} value={approach.approche_id}>
+                          {approach.libelle}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.lifecycleApproach && (
+                    <p className="text-xs text-destructive mt-1">{errors.lifecycleApproach}</p>
+                  )}
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Project Code</p>
-                  <p className="font-semibold text-foreground">{formData.code || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Timeline</p>
-                  <p className="font-semibold text-foreground">
-                    {formData.startDate || '-'} to {formData.endDate || '-'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Budget</p>
-                  <p className="font-semibold text-foreground">
-                    {formData.budget ? `$${formData.budget}` : '-'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Methodology</p>
-                  <p className="font-semibold text-foreground capitalize">
-                    {formData.methodology}
-                  </p>
+                  <Label htmlFor="projectNature">Project Nature *</Label>
+                  <Select
+                    value={formData.projectNature}
+                    onValueChange={(value) => handleSelectChange('projectNature', value)}
+                  >
+                    <SelectTrigger 
+                      id="projectNature" 
+                      className={`w-full ${errors.projectNature ? 'border-destructive' : ''}`}
+                    >
+                      <SelectValue placeholder="Select nature" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border shadow-lg z-50">
+                      {activeNatures.map((nature) => (
+                        <SelectItem key={nature.nature_id} value={nature.nature_id}>
+                          {nature.libelle}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.projectNature && (
+                    <p className="text-xs text-destructive mt-1">{errors.projectNature}</p>
+                  )}
                 </div>
               </div>
-            </>
-          )}
+            </div>
+
+            {/* Section 5: Additional Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                Additional Information
+              </h3>
+              <div>
+                <Label htmlFor="projectDescription">Project Description</Label>
+                <Textarea
+                  id="projectDescription"
+                  name="projectDescription"
+                  value={formData.projectDescription}
+                  onChange={handleInputChange}
+                  placeholder="Enter project description (optional)"
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Create Project
+              </Button>
+            </div>
+          </form>
         </CardContent>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 bg-card border-t p-6 flex justify-between">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={step === 1}
-          >
-            Previous
-          </Button>
-
-          {step < 5 ? (
-            <Button onClick={handleNext}>Next</Button>
-          ) : (
-            <Button onClick={handleCreate} className="bg-green-600 hover:bg-green-700">
-              Create Project
-            </Button>
-          )}
-        </div>
       </Card>
     </div>
   );
