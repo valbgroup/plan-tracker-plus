@@ -12,6 +12,8 @@ import { EVMetricsDashboard } from '../components/EVMetricsDashboard';
 import { ExportReport } from '../components/ExportReport';
 import { RiskIssuesDashboard, RiskIssue } from '../components/RiskIssuesDashboard';
 import { ProjectHistory, BaselineHistory } from '@/modules/history/components';
+import { RisksTrackingTable } from '../components/risks';
+import { IssuesTrackingTable } from '../components/issues';
 import { cn } from '@/lib/utils';
 import { 
   BarChart3, 
@@ -360,7 +362,45 @@ export function ProjectTrackingPage() {
         )}
 
         {activeTab === 'risks' && (
-          <RiskIssuesDashboard items={MOCK_RISKS} />
+          <div className="space-y-8">
+            <RisksTrackingTable
+              risks={MOCK_RISKS.filter(r => r.type === 'risk').map(r => ({
+                id: r.id,
+                title: r.title,
+                description: r.description,
+                type: 'resource' as const,
+                probability: Math.round((r.probability || 0.5) * 5),
+                impact: r.impact === 'high' ? 5 : r.impact === 'medium' ? 3 : 1,
+                score: Math.round((r.probability || 0.5) * 5) * (r.impact === 'high' ? 5 : r.impact === 'medium' ? 3 : 1),
+                response: 'mitigate' as const,
+                ownerId: '1',
+                ownerName: r.owner,
+                targetDate: r.dueDate?.toISOString().split('T')[0] || '',
+                observation: r.mitigation || '',
+                status: r.status === 'resolved' ? 'closed' as const : r.status === 'mitigating' ? 'mitigating' as const : 'identified' as const,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              }))}
+              onUpdateRisk={async () => {}}
+            />
+            <IssuesTrackingTable
+              issues={MOCK_RISKS.filter(r => r.type === 'issue').map(i => ({
+                id: i.id,
+                title: i.title,
+                description: i.description,
+                category: 'technical' as const,
+                priority: i.impact as 'high' | 'medium' | 'low',
+                action: i.mitigation || '',
+                ownerId: '1',
+                ownerName: i.owner,
+                targetDate: i.dueDate?.toISOString().split('T')[0] || '',
+                status: i.status === 'resolved' ? 'done' as const : i.status === 'mitigating' ? 'in_progress' as const : 'todo' as const,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              }))}
+              onUpdateIssue={async () => {}}
+            />
+          </div>
         )}
 
         {activeTab === 'history' && (
