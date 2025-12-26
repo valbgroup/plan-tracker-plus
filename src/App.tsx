@@ -17,7 +17,8 @@ import { PublicLayout } from "@/components/public";
 import { HomePage, PricingPage, FeaturesPage } from "@/pages/public";
 import { LoginPage as PublicLoginPage, SignupPage, VerifyEmailPage } from "@/pages/public/auth";
 
-// Admin Pages
+// Admin Pages & Layout
+import { AdminLayout } from "@/components/admin";
 import {
   AdminDashboardPage,
   AdminCustomersPage,
@@ -65,10 +66,6 @@ const queryClient = new QueryClient();
 
 // Layout wrappers
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
-  <MainLayout>{children}</MainLayout>
-);
-
-const AdminLayout = ({ children }: { children: React.ReactNode }) => (
   <MainLayout>{children}</MainLayout>
 );
 
@@ -142,18 +139,20 @@ const App = () => (
           {/* ADMIN ROUTES (/admin/*) - Backoffice  */}
           {/* ====================================== */}
           
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboardPage /></AdminLayout>} />
-          <Route path="/admin/customers" element={<AdminLayout><AdminCustomersPage /></AdminLayout>} />
-          <Route path="/admin/licenses" element={<AdminLayout><AdminLicensesPage /></AdminLayout>} />
-          <Route path="/admin/revenue" element={<AdminLayout><AdminRevenuePage /></AdminLayout>} />
-          <Route path="/admin/analytics" element={<AdminLayout><AdminAnalyticsPage /></AdminLayout>} />
-          <Route path="/admin/products" element={<AdminLayout><AdminProductsPage /></AdminLayout>} />
-          <Route path="/admin/promotions" element={<AdminLayout><AdminPromotionsPage /></AdminLayout>} />
-          <Route path="/admin/users" element={<AdminLayout><AdminUsersPage /></AdminLayout>} />
-          <Route path="/admin/settings" element={<AdminLayout><AdminSettingsPage /></AdminLayout>} />
-          <Route path="/admin/audit-log" element={<AdminLayout><AdminAuditLogPage /></AdminLayout>} />
-          <Route path="/admin/support" element={<AdminLayout><AdminSupportPage /></AdminLayout>} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="customers" element={<AdminCustomersPage />} />
+            <Route path="licenses" element={<AdminLicensesPage />} />
+            <Route path="revenue" element={<AdminRevenuePage />} />
+            <Route path="analytics" element={<AdminAnalyticsPage />} />
+            <Route path="products" element={<AdminProductsPage />} />
+            <Route path="promotions" element={<AdminPromotionsPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
+            <Route path="audit-log" element={<AdminAuditLogPage />} />
+            <Route path="support" element={<AdminSupportPage />} />
+          </Route>
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
