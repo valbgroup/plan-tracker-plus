@@ -1,0 +1,577 @@
+// LightPro Public Website Mock Data
+// All data for the marketing website
+
+export const mockTestimonials = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    title: "PMO Director",
+    company: "TechCorp International",
+    content: "LightPro reduced our reporting time by 70%. We now have real-time visibility into all 50+ projects across our organization.",
+    avatar: "SJ",
+    rating: 5,
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    title: "Senior Project Manager",
+    company: "Global Systems Inc",
+    content: "The baseline comparison feature alone saved us from 3 major scope creep disasters. Worth every penny.",
+    avatar: "MC",
+    rating: 5,
+  },
+  {
+    id: 3,
+    name: "Emma Rodriguez",
+    title: "VP of Operations",
+    company: "InnovateTech",
+    content: "Finally, a project reporting tool that executives actually want to use. The dashboards are intuitive and insightful.",
+    avatar: "ER",
+    rating: 5,
+  },
+  {
+    id: 4,
+    name: "David Kim",
+    title: "Program Manager",
+    company: "Enterprise Solutions Ltd",
+    content: "We consolidated 5 different tools into LightPro. The ROI was visible within the first quarter.",
+    avatar: "DK",
+    rating: 5,
+  },
+];
+
+export const mockFeatures = [
+  {
+    id: 1,
+    icon: "LayoutDashboard",
+    title: "Real-Time Dashboards",
+    description: "Get instant visibility into project health with customizable dashboards that update in real-time.",
+    category: "visibility",
+  },
+  {
+    id: 2,
+    icon: "GitCompare",
+    title: "Baseline Comparison",
+    description: "Track changes against your original plan with powerful baseline versioning and variance analysis.",
+    category: "planning",
+  },
+  {
+    id: 3,
+    icon: "Users",
+    title: "Stakeholder Management",
+    description: "Keep all stakeholders aligned with role-based access and automated status reports.",
+    category: "collaboration",
+  },
+  {
+    id: 4,
+    icon: "DollarSign",
+    title: "Budget Tracking",
+    description: "Monitor budgets in real-time with earned value management and forecasting.",
+    category: "financial",
+  },
+  {
+    id: 5,
+    icon: "Calendar",
+    title: "Resource Planning",
+    description: "Optimize resource allocation with capacity planning and availability tracking.",
+    category: "resources",
+  },
+  {
+    id: 6,
+    icon: "AlertTriangle",
+    title: "Risk Management",
+    description: "Identify, assess, and mitigate risks with our comprehensive risk register.",
+    category: "risk",
+  },
+  {
+    id: 7,
+    icon: "FileText",
+    title: "Automated Reports",
+    description: "Generate professional reports with one click. Schedule weekly updates to stakeholders.",
+    category: "reporting",
+  },
+  {
+    id: 8,
+    icon: "Shield",
+    title: "Audit Trail",
+    description: "Complete audit history of all changes for compliance and accountability.",
+    category: "compliance",
+  },
+];
+
+export const mockPricingPlans = [
+  {
+    id: "starter",
+    name: "Starter",
+    description: "Perfect for small teams getting started with project reporting",
+    priceMonthly: 49,
+    priceAnnual: 39,
+    features: [
+      "Up to 5 projects",
+      "3 team members",
+      "Basic dashboards",
+      "Email support",
+      "Weekly reports",
+      "1GB storage",
+    ],
+    notIncluded: [
+      "Baseline management",
+      "Advanced analytics",
+      "API access",
+      "Custom branding",
+    ],
+    popular: false,
+    cta: "Start Free Trial",
+  },
+  {
+    id: "professional",
+    name: "Professional",
+    description: "For growing teams that need advanced project tracking",
+    priceMonthly: 149,
+    priceAnnual: 119,
+    features: [
+      "Unlimited projects",
+      "15 team members",
+      "Advanced dashboards",
+      "Priority support",
+      "Daily reports",
+      "10GB storage",
+      "Baseline management",
+      "Variance analysis",
+      "Risk management",
+    ],
+    notIncluded: [
+      "API access",
+      "Custom branding",
+    ],
+    popular: true,
+    cta: "Start Free Trial",
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    description: "For large organizations with complex requirements",
+    priceMonthly: null,
+    priceAnnual: null,
+    features: [
+      "Unlimited everything",
+      "Unlimited team members",
+      "Custom dashboards",
+      "24/7 dedicated support",
+      "Real-time reports",
+      "Unlimited storage",
+      "Full baseline suite",
+      "Advanced analytics",
+      "API access",
+      "Custom branding",
+      "SSO/SAML",
+      "On-premise option",
+    ],
+    notIncluded: [],
+    popular: false,
+    cta: "Contact Sales",
+  },
+];
+
+export const mockFAQs = [
+  {
+    id: 1,
+    category: "Getting Started",
+    question: "How do I get started with LightPro?",
+    answer: "Sign up for a free 14-day trial, no credit card required. Our onboarding wizard will guide you through setting up your first project in under 10 minutes.",
+  },
+  {
+    id: 2,
+    category: "Getting Started",
+    question: "Can I import data from other project management tools?",
+    answer: "Yes! LightPro supports importing from Microsoft Project, Jira, Asana, and Excel. Our import wizard makes migration seamless.",
+  },
+  {
+    id: 3,
+    category: "Getting Started",
+    question: "How long is the free trial?",
+    answer: "You get 14 days of full access to the Professional plan features. No credit card required to start.",
+  },
+  {
+    id: 4,
+    category: "Getting Started",
+    question: "Is training included?",
+    answer: "Yes, all plans include access to our video tutorials and knowledge base. Professional and Enterprise plans include live training sessions.",
+  },
+  {
+    id: 5,
+    category: "Pricing & Billing",
+    question: "What payment methods do you accept?",
+    answer: "We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. Enterprise customers can pay by invoice.",
+  },
+  {
+    id: 6,
+    category: "Pricing & Billing",
+    question: "Can I change plans at any time?",
+    answer: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle.",
+  },
+  {
+    id: 7,
+    category: "Pricing & Billing",
+    question: "Do you offer discounts for nonprofits?",
+    answer: "Yes! We offer 30% off for verified nonprofits and educational institutions. Contact our sales team to apply.",
+  },
+  {
+    id: 8,
+    category: "Pricing & Billing",
+    question: "What happens when my trial ends?",
+    answer: "You'll be prompted to choose a plan. Your data is preserved for 30 days, so you won't lose anything if you decide to subscribe later.",
+  },
+  {
+    id: 9,
+    category: "Features",
+    question: "What is baseline management?",
+    answer: "Baseline management lets you capture a snapshot of your project plan at any point. You can then compare current progress against this baseline to identify variances.",
+  },
+  {
+    id: 10,
+    category: "Features",
+    question: "Can I customize the dashboards?",
+    answer: "Yes! You can add, remove, and rearrange widgets on your dashboards. Enterprise customers can create fully custom dashboard layouts.",
+  },
+  {
+    id: 11,
+    category: "Features",
+    question: "Does LightPro support Agile methodologies?",
+    answer: "Absolutely. LightPro supports both traditional waterfall and Agile/Scrum methodologies, including sprint planning and burndown charts.",
+  },
+  {
+    id: 12,
+    category: "Features",
+    question: "How does resource management work?",
+    answer: "You can assign team members to tasks, track their workload, and identify over-allocation. The capacity planning view shows availability across all projects.",
+  },
+  {
+    id: 13,
+    category: "Security",
+    question: "Is my data secure?",
+    answer: "Yes. We use bank-level encryption (AES-256) for data at rest and TLS 1.3 for data in transit. Our infrastructure is SOC 2 Type II certified.",
+  },
+  {
+    id: 14,
+    category: "Security",
+    question: "Where is my data stored?",
+    answer: "Data is stored in secure data centers in the US, EU, or Australia (your choice). All centers are ISO 27001 certified.",
+  },
+  {
+    id: 15,
+    category: "Security",
+    question: "Do you offer single sign-on (SSO)?",
+    answer: "Yes, Enterprise plans include SSO support for SAML 2.0, including integration with Okta, Azure AD, and Google Workspace.",
+  },
+  {
+    id: 16,
+    category: "Security",
+    question: "Can I export my data?",
+    answer: "Yes, you can export all your data at any time in multiple formats (CSV, Excel, PDF). We believe your data belongs to you.",
+  },
+  {
+    id: 17,
+    category: "Support",
+    question: "What support options are available?",
+    answer: "Starter plans get email support (24-48h response). Professional plans get priority email and chat (4h response). Enterprise gets 24/7 phone support.",
+  },
+  {
+    id: 18,
+    category: "Support",
+    question: "Do you have a mobile app?",
+    answer: "Our web app is fully responsive and works great on mobile devices. Native iOS and Android apps are on our roadmap for 2025.",
+  },
+  {
+    id: 19,
+    category: "Support",
+    question: "Is there an API for integrations?",
+    answer: "Yes, Professional and Enterprise plans include full API access. You can integrate LightPro with your existing tools and workflows.",
+  },
+  {
+    id: 20,
+    category: "Support",
+    question: "How do I contact support?",
+    answer: "You can reach our support team via email at support@lightpro.io, through the in-app chat, or by phone (Enterprise customers).",
+  },
+  {
+    id: 21,
+    category: "Integrations",
+    question: "What tools does LightPro integrate with?",
+    answer: "We integrate with Slack, Microsoft Teams, Jira, GitHub, GitLab, Google Workspace, Microsoft 365, and many more via Zapier.",
+  },
+  {
+    id: 22,
+    category: "Integrations",
+    question: "Can I sync with my calendar?",
+    answer: "Yes, LightPro syncs with Google Calendar and Outlook to show project milestones and deadlines in your calendar.",
+  },
+  {
+    id: 23,
+    category: "Integrations",
+    question: "Does LightPro work with Microsoft Project?",
+    answer: "Yes, you can import and export MPP files. Bi-directional sync is available on Enterprise plans.",
+  },
+  {
+    id: 24,
+    category: "Integrations",
+    question: "Can I connect to my accounting software?",
+    answer: "We integrate with QuickBooks and Xero for budget tracking and expense management. More integrations coming soon.",
+  },
+];
+
+export const mockTeamMembers = [
+  {
+    id: 1,
+    name: "Ahmed Benali",
+    title: "CEO & Founder",
+    bio: "Former PMO Director with 15+ years of experience in enterprise project management.",
+    avatar: "AB",
+    linkedin: "#",
+  },
+  {
+    id: 2,
+    name: "Lisa Zhang",
+    title: "CTO",
+    bio: "Ex-Google engineer passionate about building tools that make project managers' lives easier.",
+    avatar: "LZ",
+    linkedin: "#",
+  },
+  {
+    id: 3,
+    name: "Marcus Thompson",
+    title: "Head of Product",
+    bio: "Product leader who has shipped tools used by millions at Atlassian and Asana.",
+    avatar: "MT",
+    linkedin: "#",
+  },
+  {
+    id: 4,
+    name: "Sophie Martin",
+    title: "Head of Customer Success",
+    bio: "Dedicated to ensuring every customer achieves their project management goals.",
+    avatar: "SM",
+    linkedin: "#",
+  },
+];
+
+export const mockBlogPosts = [
+  {
+    id: 1,
+    slug: "5-signs-broken-reporting",
+    title: "5 Signs Your Project Reporting Is Broken",
+    excerpt: "Learn the warning signs that indicate your project reporting process needs an overhaul.",
+    category: "PMO Leadership",
+    author: "Ahmed Benali",
+    date: "2025-12-20",
+    readTime: 5,
+    featured: true,
+  },
+  {
+    id: 2,
+    slug: "baseline-management-guide",
+    title: "The Complete Guide to Baseline Management",
+    excerpt: "Everything you need to know about setting, tracking, and comparing project baselines.",
+    category: "Best Practices",
+    author: "Lisa Zhang",
+    date: "2025-12-18",
+    readTime: 8,
+    featured: false,
+  },
+  {
+    id: 3,
+    slug: "earned-value-management-simplified",
+    title: "Earned Value Management Simplified",
+    excerpt: "A practical guide to EVM that won't make your head spin.",
+    category: "Financial Tracking",
+    author: "Marcus Thompson",
+    date: "2025-12-15",
+    readTime: 6,
+    featured: false,
+  },
+  {
+    id: 4,
+    slug: "stakeholder-communication-strategies",
+    title: "7 Stakeholder Communication Strategies That Work",
+    excerpt: "Keep stakeholders informed and engaged throughout your project lifecycle.",
+    category: "Stakeholder Management",
+    author: "Sophie Martin",
+    date: "2025-12-12",
+    readTime: 4,
+    featured: true,
+  },
+];
+
+export const mockCaseStudies = [
+  {
+    id: 1,
+    slug: "techcorp-transformation",
+    company: "TechCorp International",
+    industry: "Technology",
+    title: "How TechCorp Reduced Reporting Time by 70%",
+    excerpt: "Learn how a Fortune 500 tech company transformed their PMO with LightPro.",
+    results: [
+      { metric: "70%", label: "Reduction in reporting time" },
+      { metric: "50+", label: "Projects managed" },
+      { metric: "$2M", label: "Annual savings" },
+    ],
+    logo: "TC",
+  },
+  {
+    id: 2,
+    slug: "global-systems-success",
+    company: "Global Systems Inc",
+    industry: "Manufacturing",
+    title: "Scaling Project Management Across 12 Countries",
+    excerpt: "Discover how Global Systems standardized project reporting worldwide.",
+    results: [
+      { metric: "12", label: "Countries unified" },
+      { metric: "200+", label: "Projects tracked" },
+      { metric: "40%", label: "Faster decisions" },
+    ],
+    logo: "GS",
+  },
+];
+
+export const mockCompetitors = [
+  {
+    feature: "Real-time dashboards",
+    lightpro: true,
+    msProject: false,
+    jira: true,
+    asana: true,
+  },
+  {
+    feature: "Baseline management",
+    lightpro: true,
+    msProject: true,
+    jira: false,
+    asana: false,
+  },
+  {
+    feature: "Earned value management",
+    lightpro: true,
+    msProject: true,
+    jira: false,
+    asana: false,
+  },
+  {
+    feature: "Stakeholder reporting",
+    lightpro: true,
+    msProject: false,
+    jira: false,
+    asana: true,
+  },
+  {
+    feature: "Risk management",
+    lightpro: true,
+    msProject: true,
+    jira: true,
+    asana: false,
+  },
+  {
+    feature: "Resource capacity planning",
+    lightpro: true,
+    msProject: true,
+    jira: false,
+    asana: true,
+  },
+  {
+    feature: "Budget tracking",
+    lightpro: true,
+    msProject: true,
+    jira: false,
+    asana: false,
+  },
+  {
+    feature: "Audit trail",
+    lightpro: true,
+    msProject: false,
+    jira: true,
+    asana: false,
+  },
+  {
+    feature: "No learning curve",
+    lightpro: true,
+    msProject: false,
+    jira: false,
+    asana: true,
+  },
+  {
+    feature: "Affordable pricing",
+    lightpro: true,
+    msProject: false,
+    jira: true,
+    asana: true,
+  },
+];
+
+export const mockStats = [
+  { value: "10,000+", label: "Projects Managed" },
+  { value: "500+", label: "Happy Teams" },
+  { value: "99.9%", label: "Uptime" },
+  { value: "70%", label: "Time Saved" },
+];
+
+export const mockPainPoints = [
+  {
+    icon: "Clock",
+    title: "Hours Lost on Reports",
+    description: "Stop spending 10+ hours weekly on manual status reports that nobody reads.",
+  },
+  {
+    icon: "AlertCircle",
+    title: "Scope Creep Blindness",
+    description: "Stop discovering scope creep after it's too late to fix.",
+  },
+  {
+    icon: "FileSpreadsheet",
+    title: "Spreadsheet Chaos",
+    description: "Stop managing projects across 15 different spreadsheets.",
+  },
+  {
+    icon: "Users",
+    title: "Stakeholder Confusion",
+    description: "Stop having stakeholders ask 'what's the status?' every day.",
+  },
+];
+
+// Industries for signup
+export const industries = [
+  "Technology",
+  "Financial Services",
+  "Healthcare",
+  "Manufacturing",
+  "Retail",
+  "Construction",
+  "Education",
+  "Government",
+  "Professional Services",
+  "Other",
+];
+
+// Company sizes for signup
+export const companySizes = [
+  "1-10 employees",
+  "11-50 employees",
+  "51-200 employees",
+  "201-500 employees",
+  "501-1000 employees",
+  "1000+ employees",
+];
+
+// Countries for signup
+export const countries = [
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "Netherlands",
+  "Switzerland",
+  "Singapore",
+  "United Arab Emirates",
+  "Morocco",
+  "Other",
+];
