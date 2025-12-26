@@ -1,25 +1,17 @@
 // Admin routes (business backoffice for owners/admins)
 // These routes require admin authentication
-//
-// Future routes:
-// - /admin/dashboard - Admin dashboard
-// - /admin/licenses - License management
-// - /admin/revenue - Revenue analytics
-// - /admin/products - Product management
-// - /admin/promotions - Promotions management
-// - /admin/customers - Customer management
-// - /admin/users - User administration
-// - /admin/analytics - Business analytics
-// - /admin/settings - Admin settings
 
 export const ADMIN_ROUTES = {
+  ROOT: '/admin',
   DASHBOARD: '/admin/dashboard',
+  CUSTOMERS: '/admin/customers',
   LICENSES: '/admin/licenses',
   REVENUE: '/admin/revenue',
+  ANALYTICS: '/admin/analytics',
   PRODUCTS: '/admin/products',
   PROMOTIONS: '/admin/promotions',
-  CUSTOMERS: '/admin/customers',
   USERS: '/admin/users',
-  ANALYTICS: '/admin/analytics',
   SETTINGS: '/admin/settings',
+  AUDIT_LOG: '/admin/audit-log',
+  SUPPORT: '/admin/support',
 } as const;

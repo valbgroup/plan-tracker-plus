@@ -8,7 +8,6 @@ import { MainLayout } from "@/components/layout";
 // Pages
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/auth/LoginPage";
 import OperationalDashboard from "./pages/dashboard/OperationalDashboard";
 import TacticalDashboard from "./pages/dashboard/TacticalDashboard";
 import StrategicDashboard from "./pages/dashboard/StrategicDashboard";
@@ -17,6 +16,21 @@ import StrategicDashboard from "./pages/dashboard/StrategicDashboard";
 import { PublicLayout } from "@/components/public";
 import { HomePage, PricingPage, FeaturesPage } from "@/pages/public";
 import { LoginPage as PublicLoginPage, SignupPage, VerifyEmailPage } from "@/pages/public/auth";
+
+// Admin Pages
+import {
+  AdminDashboardPage,
+  AdminCustomersPage,
+  AdminLicensesPage,
+  AdminRevenuePage,
+  AdminAnalyticsPage,
+  AdminProductsPage,
+  AdminPromotionsPage,
+  AdminUsersPage,
+  AdminSettingsPage,
+  AdminAuditLogPage,
+  AdminSupportPage,
+} from "@/pages/admin";
 
 // Projects Module
 import { 
@@ -49,8 +63,12 @@ import UserSettings from "./pages/settings/UserSettings";
 
 const queryClient = new QueryClient();
 
-// TESTING MODE: No auth protection
+// Layout wrappers
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
+  <MainLayout>{children}</MainLayout>
+);
+
+const AdminLayout = ({ children }: { children: React.ReactNode }) => (
   <MainLayout>{children}</MainLayout>
 );
 
@@ -70,15 +88,12 @@ const App = () => (
             <Route path="pricing" element={<PricingPage />} />
           </Route>
           
-          {/* Public Auth Routes (no layout wrapper) */}
+          {/* Public Auth Routes */}
           <Route path="/public/auth/login" element={<PublicLoginPage />} />
           <Route path="/public/auth/signup" element={<SignupPage />} />
           <Route path="/public/auth/verify-email" element={<VerifyEmailPage />} />
 
-          {/* Legacy login redirect */}
-          <Route path="/login" element={<Navigate to="/public/auth/login" replace />} />
-
-          {/* Root redirect - redirects to app dashboard */}
+          {/* Root redirect */}
           <Route path="/" element={<Index />} />
           
           {/* ====================================== */}
@@ -86,6 +101,8 @@ const App = () => (
           {/* ====================================== */}
           
           {/* Dashboard routes */}
+          <Route path="/app" element={<Navigate to="/app/dashboard/operational" replace />} />
+          <Route path="/app/dashboard" element={<Navigate to="/app/dashboard/operational" replace />} />
           <Route path="/app/dashboard/operational" element={<AppLayout><OperationalDashboard /></AppLayout>} />
           <Route path="/app/dashboard/tactical" element={<AppLayout><TacticalDashboard /></AppLayout>} />
           <Route path="/app/dashboard/strategic" element={<AppLayout><StrategicDashboard /></AppLayout>} />
@@ -113,7 +130,7 @@ const App = () => (
           <Route path="/app/master-data/agile" element={<AppLayout><AgilePage /></AppLayout>} />
           <Route path="/app/master-data/calendars" element={<AppLayout><CalendarsPage /></AppLayout>} />
 
-          {/* History & Audit - Primary route */}
+          {/* History & Audit */}
           <Route path="/app/history" element={<AppLayout><GlobalAuditPage /></AppLayout>} />
 
           {/* Settings routes */}
@@ -122,46 +139,21 @@ const App = () => (
           <Route path="/app/settings/profile" element={<AppLayout><UserSettings /></AppLayout>} />
 
           {/* ====================================== */}
-          {/* LEGACY REDIRECTS (old routes → /app/*) */}
+          {/* ADMIN ROUTES (/admin/*) - Backoffice  */}
           {/* ====================================== */}
           
-          {/* Dashboard redirects */}
-          <Route path="/dashboard/operational" element={<Navigate to="/app/dashboard/operational" replace />} />
-          <Route path="/dashboard/tactical" element={<Navigate to="/app/dashboard/tactical" replace />} />
-          <Route path="/dashboard/strategic" element={<Navigate to="/app/dashboard/strategic" replace />} />
-          
-          {/* Projects redirects */}
-          <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
-          <Route path="/projects/dashboard" element={<Navigate to="/app/projects/dashboard" replace />} />
-          <Route path="/projects/:id/plan" element={<Navigate to="/app/projects/:id/plan" replace />} />
-          <Route path="/projects/:id/tracking" element={<Navigate to="/app/projects/:id/tracking" replace />} />
-          <Route path="/projects/:id/history" element={<Navigate to="/app/projects/:id/history" replace />} />
-          
-          {/* Master Data redirects */}
-          <Route path="/master-data" element={<Navigate to="/app/master-data/qualifications" replace />} />
-          <Route path="/master-data/qualifications" element={<Navigate to="/app/master-data/qualifications" replace />} />
-          <Route path="/master-data/deliverables" element={<Navigate to="/app/master-data/deliverables" replace />} />
-          <Route path="/master-data/budget" element={<Navigate to="/app/master-data/budget" replace />} />
-          <Route path="/master-data/locations" element={<Navigate to="/app/master-data/locations" replace />} />
-          <Route path="/master-data/organization" element={<Navigate to="/app/master-data/organization" replace />} />
-          <Route path="/master-data/resources" element={<Navigate to="/app/master-data/resources" replace />} />
-          <Route path="/master-data/risks" element={<Navigate to="/app/master-data/risks" replace />} />
-          <Route path="/master-data/agile" element={<Navigate to="/app/master-data/agile" replace />} />
-          <Route path="/master-data/calendars" element={<Navigate to="/app/master-data/calendars" replace />} />
-          
-          {/* History redirects */}
-          <Route path="/history" element={<Navigate to="/app/history" replace />} />
-          <Route path="/history/audit" element={<Navigate to="/app/history" replace />} />
-          <Route path="/history/impact" element={<Navigate to="/app/history" replace />} />
-          <Route path="/history/impact-analysis" element={<Navigate to="/app/history" replace />} />
-          <Route path="/history/compliance" element={<Navigate to="/app/history" replace />} />
-          <Route path="/history/reports" element={<Navigate to="/app/history" replace />} />
-          <Route path="/global-audit" element={<Navigate to="/app/history" replace />} />
-          
-          {/* Settings redirects */}
-          <Route path="/settings" element={<Navigate to="/app/settings/system" replace />} />
-          <Route path="/settings/system" element={<Navigate to="/app/settings/system" replace />} />
-          <Route path="/settings/profile" element={<Navigate to="/app/settings/profile" replace />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboardPage /></AdminLayout>} />
+          <Route path="/admin/customers" element={<AdminLayout><AdminCustomersPage /></AdminLayout>} />
+          <Route path="/admin/licenses" element={<AdminLayout><AdminLicensesPage /></AdminLayout>} />
+          <Route path="/admin/revenue" element={<AdminLayout><AdminRevenuePage /></AdminLayout>} />
+          <Route path="/admin/analytics" element={<AdminLayout><AdminAnalyticsPage /></AdminLayout>} />
+          <Route path="/admin/products" element={<AdminLayout><AdminProductsPage /></AdminLayout>} />
+          <Route path="/admin/promotions" element={<AdminLayout><AdminPromotionsPage /></AdminLayout>} />
+          <Route path="/admin/users" element={<AdminLayout><AdminUsersPage /></AdminLayout>} />
+          <Route path="/admin/settings" element={<AdminLayout><AdminSettingsPage /></AdminLayout>} />
+          <Route path="/admin/audit-log" element={<AdminLayout><AdminAuditLogPage /></AdminLayout>} />
+          <Route path="/admin/support" element={<AdminLayout><AdminSupportPage /></AdminLayout>} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
