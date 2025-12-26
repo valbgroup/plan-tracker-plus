@@ -11,6 +11,7 @@ import {
   Moon,
   Sun,
 } from 'lucide-react';
+import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -130,6 +131,9 @@ export function Header() {
             <Moon className="h-5 w-5" />
           )}
         </Button>
+
+        {/* Role Switcher - TEST ONLY */}
+        <RoleSwitcher />
 
         {/* Notifications */}
         <DropdownMenu>
