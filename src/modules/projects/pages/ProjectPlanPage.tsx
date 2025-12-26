@@ -35,6 +35,14 @@ import { RisksPlanSection } from '../components/risks';
 import { IssuesPlanSection } from '../components/issues';
 import { Risk, Issue } from '../types/risks-issues.types';
 import { ChangeRequestsTable, ChangeRequestData } from '../components/audit/ChangeRequestsTable';
+import { 
+  BaselineChangeLogTab, 
+  OperationalChangeLogTab, 
+  PendingChangeRequestsTab,
+  BaselineChangeLog,
+  OperationalChangeLog,
+  PendingChangeRequest,
+} from '../components/log';
 import { useRBAC } from '@/hooks/useRBAC';
 import {
   usePortfolios,
@@ -240,16 +248,31 @@ export const ProjectPlanPage: React.FC = () => {
             // Simulate API call to submit change request
             await new Promise(resolve => setTimeout(resolve, 1000));
             
+            // Create pending change request
+            const newRequest: PendingChangeRequest = {
+              id: `pr-${Date.now()}`,
+              fieldName,
+              fieldLabel,
+              oldValue: String(oldValue),
+              newValue: String(newValue),
+              requestedBy: 'current-user',
+              requestedByName: 'Current User',
+              requestedAt: new Date().toISOString(),
+              status: 'pending',
+              justification,
+              projectId: project?.project_id || 'proj-001',
+            };
+            setPendingRequests(prev => [newRequest, ...prev]);
+            
             // Mark field as pending
             setBaselineFields(prev => ({
               ...prev,
               [fieldName]: { ...prev[fieldName], isPending: true, pendingValue: newValue }
             }));
             
-            // Apply the change locally (will be pending approval)
-            updateFn();
-            
-            toast.success('Change request submitted for PMO approval');
+            toast.success('Change request submitted for PMO approval', {
+              description: `${fieldLabel} change is pending review`,
+            });
             setChangeRequestModal(prev => ({ ...prev, isOpen: false }));
           } catch (error) {
             toast.error('Failed to submit change request');
@@ -258,9 +281,15 @@ export const ProjectPlanPage: React.FC = () => {
           }
         }
       });
-    } else {
-      // Field is not baseline-protected or not validated - apply change directly
+    } else if (fieldState?.isBaseline && baselineStatus !== 'validated') {
+      // Baseline field but not validated yet - allow direct edit
       updateFn();
+      toast.success(`${fieldLabel} updated`);
+    } else {
+      // Field is not baseline-protected - apply change directly and log
+      updateFn();
+      addOperationalLog('Identification', fieldLabel, String(oldValue), String(newValue));
+      toast.success(`${fieldLabel} updated`);
     }
   };
 
@@ -516,6 +545,193 @@ export const ProjectPlanPage: React.FC = () => {
     { id: 'cr-1', requestNumber: 'CHG-001', requestDate: new Date('2025-02-25'), requestorName: 'Ahmed Benali', requestorEmail: 'ahmed@company.dz', changeType: 'MAJOR', description: 'Request to extend project timeline by 2 weeks due to additional scope', status: 'PENDING', affectedFields: ['Phase.Execution.EndDate', 'Phase.Closure.StartDate', 'Phase.Closure.EndDate'], timelineImpact: '+2 weeks', riskLevel: 6 },
     { id: 'cr-2', requestNumber: 'CHG-002', requestDate: new Date('2025-02-20'), requestorName: 'Fatima Kaci', requestorEmail: 'fatima@company.dz', changeType: 'MINOR', description: 'Budget reallocation from Travel to Equipment envelope', status: 'APPROVED', approverName: 'Director PMO', approverEmail: 'pmo@company.dz', approvalComments: 'Approved - sensible reallocation', affectedFields: ['Budget.Envelope.Travel', 'Budget.Envelope.Equipment'], budgetImpact: 0, riskLevel: 2 },
   ]);
+
+  // Phase 4 Log State
+  const [baselineChanges, setBaselineChanges] = useState<BaselineChangeLog[]>([
+    {
+      id: 'bc-001',
+      fieldName: 'date_fin_planifiée',
+      fieldLabel: 'Project End Date',
+      oldValue: '2024-12-31',
+      newValue: '2025-02-28',
+      requestedBy: 'user-pm-001',
+      requestedByName: 'Ahmed Benali',
+      requestedAt: '2024-11-15T10:30:00Z',
+      approvedBy: 'user-pmo-001',
+      approvedByName: 'Fatima Bouali',
+      approvalDate: '2024-11-16T14:00:00Z',
+      status: 'approved',
+      justification: 'Extended timeline due to additional scope requirements',
+      version: 2,
+      projectId: project?.project_id || 'proj-001',
+    },
+    {
+      id: 'bc-002',
+      fieldName: 'montant_budget_total',
+      fieldLabel: 'Total Budget',
+      oldValue: '450,000 DZD',
+      newValue: '500,000 DZD',
+      requestedBy: 'user-pm-001',
+      requestedByName: 'Ahmed Benali',
+      requestedAt: '2024-10-20T09:15:00Z',
+      approvedBy: 'user-pmo-001',
+      approvedByName: 'Fatima Bouali',
+      approvalDate: '2024-10-21T11:30:00Z',
+      status: 'approved',
+      justification: 'Budget increase to accommodate new security requirements',
+      version: 1,
+      projectId: project?.project_id || 'proj-001',
+    },
+  ]);
+
+  const [operationalChanges, setOperationalChanges] = useState<OperationalChangeLog[]>([
+    {
+      id: 'oc-001',
+      section: 'Stakeholders',
+      fieldName: 'team_member',
+      fieldLabel: 'Team Member Added',
+      oldValue: '-',
+      newValue: 'Youcef Amrani (Developer)',
+      changedBy: 'user-pm-001',
+      changedByName: 'Ahmed Benali',
+      changedAt: '2024-12-24T14:30:00Z',
+      projectId: project?.project_id || 'proj-001',
+    },
+    {
+      id: 'oc-002',
+      section: 'Resources',
+      fieldName: 'resource_allocation',
+      fieldLabel: 'Resource Allocation Updated',
+      oldValue: '50%',
+      newValue: '75%',
+      changedBy: 'user-pm-001',
+      changedByName: 'Ahmed Benali',
+      changedAt: '2024-12-23T11:15:00Z',
+      projectId: project?.project_id || 'proj-001',
+    },
+    {
+      id: 'oc-003',
+      section: 'Risks',
+      fieldName: 'risk_status',
+      fieldLabel: 'Risk Status Changed',
+      oldValue: 'Identified',
+      newValue: 'Mitigating',
+      changedBy: 'user-pm-002',
+      changedByName: 'Karim Hadjadj',
+      changedAt: '2024-12-22T09:45:00Z',
+      projectId: project?.project_id || 'proj-001',
+    },
+  ]);
+
+  const [pendingRequests, setPendingRequests] = useState<PendingChangeRequest[]>([
+    {
+      id: 'pr-001',
+      fieldName: 'date_fin_planifiée',
+      fieldLabel: 'Project End Date',
+      oldValue: '2025-02-28',
+      newValue: '2025-03-31',
+      requestedBy: 'user-pm-001',
+      requestedByName: 'Ahmed Benali',
+      requestedAt: '2024-12-25T09:00:00Z',
+      status: 'pending',
+      justification: 'Additional testing phase required for security compliance',
+      projectId: project?.project_id || 'proj-001',
+    },
+    {
+      id: 'pr-002',
+      fieldName: 'montant_budget_total',
+      fieldLabel: 'Total Budget',
+      oldValue: '500,000 DZD',
+      newValue: '550,000 DZD',
+      requestedBy: 'user-pm-002',
+      requestedByName: 'Karim Hadjadj',
+      requestedAt: '2024-12-24T15:30:00Z',
+      status: 'pending',
+      justification: 'Need additional resources for API optimization',
+      projectId: project?.project_id || 'proj-001',
+    },
+  ]);
+
+  // Current baseline version
+  const [currentBaselineVersion, setCurrentBaselineVersion] = useState<number>(1.1);
+
+  // PMO Approval/Rejection Handlers
+  const handleApproveRequest = async (requestId: string, comments?: string) => {
+    const request = pendingRequests.find(r => r.id === requestId);
+    if (!request) return;
+
+    // Increment version
+    const newVersion = Number((currentBaselineVersion + 0.1).toFixed(1));
+    setCurrentBaselineVersion(newVersion);
+
+    // Move to baseline changes
+    const approvedChange: BaselineChangeLog = {
+      ...request,
+      approvedBy: 'current-user',
+      approvedByName: 'Current User (PMO)',
+      approvalDate: new Date().toISOString(),
+      status: 'approved',
+      version: newVersion,
+    };
+    setBaselineChanges(prev => [approvedChange, ...prev]);
+
+    // Remove from pending
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+
+    // Apply the change to the form (if applicable)
+    if (request.fieldName === 'date_fin_planifiée') {
+      setFormData(prev => ({ ...prev, date_fin_planifiée: request.newValue }));
+    } else if (request.fieldName === 'montant_budget_total') {
+      const budgetValue = parseInt(request.newValue.replace(/[^0-9]/g, ''));
+      if (!isNaN(budgetValue)) {
+        setFormData(prev => ({ ...prev, montant_budget_total: budgetValue }));
+      }
+    }
+
+    toast.success(`Change approved! Baseline updated to v${newVersion}`, {
+      description: `${request.fieldLabel} has been updated`,
+    });
+  };
+
+  const handleRejectRequest = async (requestId: string, reason: string) => {
+    const request = pendingRequests.find(r => r.id === requestId);
+    if (!request) return;
+
+    // Move to baseline changes with rejected status
+    const rejectedChange: BaselineChangeLog = {
+      ...request,
+      approvedBy: 'current-user',
+      approvedByName: 'Current User (PMO)',
+      approvalDate: new Date().toISOString(),
+      status: 'rejected',
+      version: currentBaselineVersion,
+    };
+    setBaselineChanges(prev => [rejectedChange, ...prev]);
+
+    // Remove from pending
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+
+    toast.success('Change request rejected', {
+      description: 'The requester will be notified',
+    });
+  };
+
+  // Add operational change log entry
+  const addOperationalLog = (section: string, fieldLabel: string, oldValue: string, newValue: string) => {
+    const newLog: OperationalChangeLog = {
+      id: `oc-${Date.now()}`,
+      section,
+      fieldName: fieldLabel.toLowerCase().replace(/\s+/g, '_'),
+      fieldLabel,
+      oldValue,
+      newValue,
+      changedBy: 'current-user',
+      changedByName: 'Current User',
+      changedAt: new Date().toISOString(),
+      projectId: project?.project_id || 'proj-001',
+    };
+    setOperationalChanges(prev => [newLog, ...prev]);
+  };
 
   
   // Form state for editing
@@ -1540,65 +1756,47 @@ export const ProjectPlanPage: React.FC = () => {
 
               {activeTab === 'log' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-foreground">Project Audit Log</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-foreground">Project Audit Log</h3>
+                    <Badge variant="outline" className="font-mono">
+                      Baseline v{currentBaselineVersion}
+                    </Badge>
+                  </div>
                   
-                  <Tabs defaultValue="versions" className="w-full">
+                  <Tabs defaultValue="baseline" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="versions">Baseline Versions</TabsTrigger>
-                      <TabsTrigger value="modifications">Modification Log</TabsTrigger>
-                      <TabsTrigger value="changes">Change Requests</TabsTrigger>
+                      <TabsTrigger value="baseline">Baseline Changes</TabsTrigger>
+                      <TabsTrigger value="operational">Operational Changes</TabsTrigger>
+                      <TabsTrigger value="pending" className="relative">
+                        Pending Requests
+                        {pendingRequests.filter(r => r.status === 'pending').length > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {pendingRequests.filter(r => r.status === 'pending').length}
+                          </span>
+                        )}
+                      </TabsTrigger>
                     </TabsList>
                     
-                    <TabsContent value="versions" className="mt-6">
-                      <BaselineVersionsTable
-                        versions={baselineVersions}
-                        onRestore={async (versionId) => {
-                          await new Promise(resolve => setTimeout(resolve, 500));
-                          toast.success(`Version ${versionId} restored successfully`);
-                        }}
-                        onExport={async (versionId, format) => {
-                          await new Promise(resolve => setTimeout(resolve, 500));
-                          toast.success(`Version exported as ${format.toUpperCase()}`);
-                        }}
+                    <TabsContent value="baseline" className="mt-6">
+                      <BaselineChangeLogTab
+                        projectId={project?.project_id || 'proj-001'}
+                        changes={baselineChanges}
                       />
                     </TabsContent>
                     
-                    <TabsContent value="modifications" className="mt-6">
-                      <ModificationLogTable
-                        logs={modificationLog}
-                        onRollback={async (logId) => {
-                          await new Promise(resolve => setTimeout(resolve, 500));
-                          toast.success('Change rolled back successfully');
-                        }}
-                        onExport={async (format) => {
-                          await new Promise(resolve => setTimeout(resolve, 500));
-                          toast.success(`Log exported as ${format.toUpperCase()}`);
-                        }}
+                    <TabsContent value="operational" className="mt-6">
+                      <OperationalChangeLogTab
+                        projectId={project?.project_id || 'proj-001'}
+                        changes={operationalChanges}
                       />
                     </TabsContent>
                     
-                    <TabsContent value="changes" className="mt-6">
-                      <ChangeRequestsTable
-                        requests={changeRequests}
-                        isBaselineValidated={baselineStatus === 'validated'}
-                        onApprove={async (requestId, comments) => {
-                          await new Promise(resolve => setTimeout(resolve, 500));
-                          setChangeRequests(prev => prev.map(r => 
-                            r.id === requestId 
-                              ? { ...r, status: 'APPROVED' as const, approvalComments: comments, approverName: 'Current User' }
-                              : r
-                          ));
-                          toast.success('Change request approved');
-                        }}
-                        onReject={async (requestId, reason) => {
-                          await new Promise(resolve => setTimeout(resolve, 500));
-                          setChangeRequests(prev => prev.map(r => 
-                            r.id === requestId 
-                              ? { ...r, status: 'REJECTED' as const, approvalComments: reason, approverName: 'Current User' }
-                              : r
-                          ));
-                          toast.success('Change request rejected');
-                        }}
+                    <TabsContent value="pending" className="mt-6">
+                      <PendingChangeRequestsTab
+                        projectId={project?.project_id || 'proj-001'}
+                        requests={pendingRequests}
+                        onApprove={handleApproveRequest}
+                        onReject={handleRejectRequest}
                       />
                     </TabsContent>
                   </Tabs>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GanttChart } from '../components/GanttChart';
 import { EVMetricsDashboard } from '../components/EVMetricsDashboard';
 import { ExportReport } from '../components/ExportReport';
@@ -14,6 +15,14 @@ import { RiskIssuesDashboard, RiskIssue } from '../components/RiskIssuesDashboar
 import { ProjectHistory, BaselineHistory } from '@/modules/history/components';
 import { RisksTrackingTable } from '../components/risks';
 import { IssuesTrackingTable } from '../components/issues';
+import { 
+  BaselineChangeLogTab, 
+  OperationalChangeLogTab, 
+  PendingChangeRequestsTab,
+  MOCK_BASELINE_CHANGES,
+  MOCK_OPERATIONAL_CHANGES,
+  MOCK_PENDING_REQUESTS,
+} from '../components/log';
 import { cn } from '@/lib/utils';
 import { 
   BarChart3, 
@@ -29,9 +38,10 @@ import {
   Download,
   History,
   GitBranch,
+  FileText,
 } from 'lucide-react';
 
-type TrackingTab = 'overview' | 'variance' | 'risks' | 'export' | 'history' | 'baseline';
+type TrackingTab = 'overview' | 'variance' | 'risks' | 'changelog' | 'history' | 'baseline' | 'export';
 
 // Mock risk/issues data
 const MOCK_RISKS: RiskIssue[] = [
@@ -126,7 +136,8 @@ export function ProjectTrackingPage() {
     { id: 'overview' as TrackingTab, label: 'Overview', icon: Activity },
     { id: 'variance' as TrackingTab, label: 'EV Analysis', icon: BarChart3 },
     { id: 'risks' as TrackingTab, label: 'Risks & Issues', icon: AlertTriangle },
-    { id: 'history' as TrackingTab, label: 'Change History', icon: History },
+    { id: 'changelog' as TrackingTab, label: 'Change Log', icon: FileText },
+    { id: 'history' as TrackingTab, label: 'History', icon: History },
     { id: 'baseline' as TrackingTab, label: 'Baselines', icon: GitBranch },
     { id: 'export' as TrackingTab, label: 'Export', icon: Download },
   ];
@@ -400,6 +411,39 @@ export function ProjectTrackingPage() {
               }))}
               onUpdateIssue={async () => {}}
             />
+          </div>
+        )}
+
+        {activeTab === 'changelog' && (
+          <div className="space-y-6">
+            <Tabs defaultValue="baseline" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="baseline">Baseline Changes</TabsTrigger>
+                <TabsTrigger value="operational">Operational Changes</TabsTrigger>
+                <TabsTrigger value="pending">Pending Requests</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="baseline" className="mt-6">
+                <BaselineChangeLogTab
+                  projectId={project.project_id}
+                  changes={MOCK_BASELINE_CHANGES}
+                />
+              </TabsContent>
+              
+              <TabsContent value="operational" className="mt-6">
+                <OperationalChangeLogTab
+                  projectId={project.project_id}
+                  changes={MOCK_OPERATIONAL_CHANGES}
+                />
+              </TabsContent>
+              
+              <TabsContent value="pending" className="mt-6">
+                <PendingChangeRequestsTab
+                  projectId={project.project_id}
+                  requests={MOCK_PENDING_REQUESTS}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         )}
 
