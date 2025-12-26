@@ -6,7 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent } from '@/components/ui/card';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { MOCK_EMPLOYEES } from '@/data/masterDataMock';
 interface CreateProjectWizardProps {
   onClose: () => void;
   onSuccess: () => void;
@@ -168,14 +175,23 @@ export const CreateProjectWizard: React.FC<CreateProjectWizardProps> = ({
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="manager">Project Manager *</Label>
-                  <Input
-                    id="manager"
+                  <Select
                     value={formData.manager}
-                    onChange={(e) =>
-                      setFormData({ ...formData, manager: e.target.value })
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, manager: value })
                     }
-                    placeholder="Select project manager"
-                  />
+                  >
+                    <SelectTrigger id="manager" className="w-full">
+                      <SelectValue placeholder="Select project manager" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border shadow-lg z-50">
+                      {MOCK_EMPLOYEES.filter(emp => emp.is_active).map((emp) => (
+                        <SelectItem key={emp.collaborateur_id} value={emp.collaborateur_id}>
+                          {emp.matricule} - {emp.prenom} {emp.nom}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="budget">Budget *</Label>
