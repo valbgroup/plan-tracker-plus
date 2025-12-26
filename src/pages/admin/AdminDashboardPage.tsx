@@ -1,115 +1,233 @@
-import { PageContainer } from "@/components/layout";
+import { useOutletContext } from "react-router-dom";
+import { AdminHeader, KPICard, StatusBadge, AdminTable, Column } from "@/components/admin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, DollarSign, TrendingUp, Package, BarChart3 } from "lucide-react";
+import { Users, DollarSign, FileKey2, Headphones, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  adminDashboardStats,
+  revenueChartData,
+  topCustomers,
+  recentActivities,
+} from "@/data/adminMockData";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
-const stats = [
-  { title: "Total Customers", value: "2,847", change: "+12.5%", icon: Users },
-  { title: "Active Licenses", value: "4,231", change: "+8.2%", icon: FileText },
-  { title: "Monthly Revenue", value: "$127,450", change: "+15.3%", icon: DollarSign },
-  { title: "Growth Rate", value: "23.5%", change: "+2.1%", icon: TrendingUp },
-];
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+const formatNumber = (value: number) => {
+  return new Intl.NumberFormat("en-US").format(value);
+};
 
 const AdminDashboardPage = () => {
+  const navigate = useNavigate();
+  const context = useOutletContext<{ sidebarCollapsed: boolean; onMenuClick: () => void }>();
+
+  const handleRefresh = () => {
+    toast.success("Dashboard data refreshed");
+  };
+
+  const topCustomerColumns: Column<typeof topCustomers[0]>[] = [
+    { 
+      key: "name", 
+      label: "Customer", 
+      render: (value, row) => (
+        <button 
+          className="text-primary hover:underline font-medium text-left"
+          onClick={() => navigate(`/admin/customers/${row.id}`)}
+        >
+          {value}
+        </button>
+      )
+    },
+    { 
+      key: "revenue", 
+      label: "Revenue", 
+      render: (value) => formatCurrency(value) 
+    },
+    { 
+      key: "status", 
+      label: "Status", 
+      render: (value) => <StatusBadge status={value} /> 
+    },
+    { key: "license", label: "License", render: (value) => <StatusBadge status={value.toLowerCase()} text={value} /> },
+  ];
+
+  const activityColumns: Column<typeof recentActivities[0]>[] = [
+    { key: "user", label: "User" },
+    { key: "action", label: "Action" },
+    { key: "target", label: "Target" },
+    { key: "time", label: "Time" },
+    { key: "status", label: "Status", render: (value) => <StatusBadge status={value} /> },
+  ];
+
   return (
-    <PageContainer
-      title="Admin Dashboard"
-      description="Business overview and key metrics"
-    >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col min-h-screen">
+      <AdminHeader
+        title="Admin Dashboard"
+        showDateRange
+        showRefresh
+        onRefresh={handleRefresh}
+        showMobileMenu
+        onMenuClick={context?.onMenuClick}
+      />
+
+      <div className="flex-1 p-4 md:p-6 space-y-6">
+        {/* KPI Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <KPICard
+            title={adminDashboardStats.totalCustomers.label}
+            value={formatNumber(adminDashboardStats.totalCustomers.value)}
+            change={adminDashboardStats.totalCustomers.change}
+            changeLabel={adminDashboardStats.totalCustomers.comparison}
+            icon={<Users className="h-5 w-5" />}
+          />
+          <KPICard
+            title={adminDashboardStats.monthlyRevenue.label}
+            value={formatCurrency(adminDashboardStats.monthlyRevenue.value)}
+            change={adminDashboardStats.monthlyRevenue.change}
+            changeLabel={adminDashboardStats.monthlyRevenue.comparison}
+            icon={<DollarSign className="h-5 w-5" />}
+          />
+          <KPICard
+            title={adminDashboardStats.activeLicenses.label}
+            value={formatNumber(adminDashboardStats.activeLicenses.value)}
+            change={adminDashboardStats.activeLicenses.change}
+            changeLabel={adminDashboardStats.activeLicenses.comparison}
+            icon={<FileKey2 className="h-5 w-5" />}
+          />
+          <KPICard
+            title={adminDashboardStats.supportTickets.label}
+            value={formatNumber(adminDashboardStats.supportTickets.value)}
+            change={adminDashboardStats.supportTickets.change}
+            changeLabel={adminDashboardStats.supportTickets.comparison}
+            icon={<Headphones className="h-5 w-5" />}
+          />
+        </div>
+
+        {/* Charts and Tables Row */}
+        <div className="grid gap-6 lg:grid-cols-5">
+          {/* Revenue Chart */}
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Revenue Trend (Last 12 Months)
+              </CardTitle>
+              <CardDescription>Planned vs Actual revenue comparison</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">{stat.change}</span> from last month
-              </p>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={revenueChartData}>
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorPlanned" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      tickFormatter={(value) => `$${value / 1000}K`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
+                      formatter={(value: number) => [formatCurrency(value), ""]}
+                    />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="planned"
+                      stroke="hsl(var(--muted-foreground))"
+                      fill="url(#colorPlanned)"
+                      strokeDasharray="5 5"
+                      name="Planned"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="hsl(var(--primary))"
+                      fill="url(#colorRevenue)"
+                      strokeWidth={2}
+                      name="Actual"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-6">
+          {/* Top Customers */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Top Customers
+              </CardTitle>
+              <CardDescription>By revenue this month</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminTable
+                columns={topCustomerColumns}
+                data={topCustomers}
+                keyField="id"
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activities */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Recent Signups
-            </CardTitle>
-            <CardDescription>Latest customer registrations</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Recent Platform Activities</CardTitle>
+              <CardDescription>Latest admin actions and system events</CardDescription>
+            </div>
+            <Button variant="outline" onClick={() => navigate("/admin/audit-log")}>
+              View All
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {["TechCorp Inc.", "GlobalMedia Ltd.", "StartupXYZ", "Enterprise Co."].map((company) => (
-                <div key={company} className="flex items-center justify-between border-b pb-2">
-                  <span className="text-sm">{company}</span>
-                  <span className="text-xs text-muted-foreground">Today</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              License Distribution
-            </CardTitle>
-            <CardDescription>By plan type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[
-                { plan: "Starter", count: 1245, pct: 44 },
-                { plan: "Professional", count: 1102, pct: 39 },
-                { plan: "Enterprise", count: 500, pct: 17 },
-              ].map((item) => (
-                <div key={item.plan} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>{item.plan}</span>
-                    <span className="text-muted-foreground">{item.count}</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full">
-                    <div 
-                      className="h-full bg-primary rounded-full" 
-                      style={{ width: `${item.pct}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Revenue Breakdown
-            </CardTitle>
-            <CardDescription>Monthly recurring</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[
-                { source: "Subscriptions", amount: "$98,450" },
-                { source: "Add-ons", amount: "$18,200" },
-                { source: "Overages", amount: "$10,800" },
-              ].map((item) => (
-                <div key={item.source} className="flex items-center justify-between border-b pb-2">
-                  <span className="text-sm">{item.source}</span>
-                  <span className="font-medium">{item.amount}</span>
-                </div>
-              ))}
-            </div>
+            <AdminTable
+              columns={activityColumns}
+              data={recentActivities}
+              keyField="id"
+            />
           </CardContent>
         </Card>
       </div>
-    </PageContainer>
+    </div>
   );
 };
 
