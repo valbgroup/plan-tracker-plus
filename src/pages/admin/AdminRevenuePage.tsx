@@ -1,12 +1,28 @@
+import { useState } from "react";
 import { PageContainer } from "@/components/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, CreditCard, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DollarSign, TrendingUp, CreditCard, ArrowUpRight, Download } from "lucide-react";
+import { ExportRevenueModal } from "@/components/admin/modals";
 
 const AdminRevenuePage = () => {
+  const [modals, setModals] = useState({
+    export: false,
+  });
+
+  const openExportModal = () => setModals({ ...modals, export: true });
+  const closeExportModal = () => setModals({ ...modals, export: false });
+
   return (
     <PageContainer
       title="Revenue"
       description="Financial metrics and revenue analytics"
+      actions={
+        <Button size="sm" variant="outline" onClick={openExportModal}>
+          <Download className="h-4 w-4 mr-2" />
+          Export Data
+        </Button>
+      }
     >
       <div className="grid gap-4 md:grid-cols-4 mb-6">
         {[
@@ -82,6 +98,9 @@ const AdminRevenuePage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modals */}
+      <ExportRevenueModal isOpen={modals.export} onClose={closeExportModal} />
     </PageContainer>
   );
 };
